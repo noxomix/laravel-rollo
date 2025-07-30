@@ -1,0 +1,15 @@
+# Exclude files from export
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/phpunit.xml export-ignore
+/testbench.yaml export-ignore
+/tests export-ignore
+/scripts export-ignore
+/workbench export-ignore
+/.editorconfig export-ignore
+/.php-cs-fixer.php export-ignore
+/.phpstan.neon export-ignore
+/psalm.xml export-ignore
+/CHANGELOG.md export-ignore
+/test-projects export-ignore
