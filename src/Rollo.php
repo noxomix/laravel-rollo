@@ -4,7 +4,6 @@ namespace Noxomix\LaravelRollo;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloRole;
@@ -23,35 +22,14 @@ class Rollo
     public function can(Model $model, string $permissionName, $context = null): bool
     {
         $contextId = $this->resolveContextId($context);
-        
-        // Check cache first if enabled
-        if ($this->cacheEnabled()) {
-            $cacheKey = $this->getCacheKey($model, $permissionName, $contextId);
-            
-            if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
-                $modelTag = $this->getModelCacheTag($model);
-                $cached = Cache::tags([$this->getCacheTag(), $modelTag])->get($cacheKey);
-            } else {
-                $cached = Cache::get($cacheKey);
-            }
-            
-            if ($cached !== null) {
-                return $cached;
-            }
-        }
 
         // Check direct permissions
         if ($this->hasDirectPermission($model, $permissionName, $contextId)) {
-            $this->cacheResult($model, $permissionName, $contextId, true);
             return true;
         }
 
         // Check permissions through roles (with recursive inheritance)
-        $hasPermission = $this->hasPermissionThroughRoles($model, $permissionName, $contextId);
-        
-        $this->cacheResult($model, $permissionName, $contextId, $hasPermission);
-        
-        return $hasPermission;
+        return $this->hasPermissionThroughRoles($model, $permissionName, $contextId);
     }
 
     /**
@@ -115,61 +93,6 @@ class Rollo
         return $allRoles;
     }
 
-    /**
-     * Clear all cache for a specific model.
-     *
-     * @param Model $model
-     * @return void
-     */
-    public function clearCacheFor(Model $model): void
-    {
-        if (!$this->cacheEnabled()) {
-            return;
-        }
-        
-        // Since we can't use wildcards with Cache::forget(),
-        // we'll use tags if available, or flush all rollo cache
-        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
-            $modelTag = $this->getModelCacheTag($model);
-            Cache::tags([$this->getCacheTag(), $modelTag])->flush();
-        } else {
-            // For non-taggable cache stores, we need to clear all rollo cache
-            // This is not ideal but necessary for cache consistency
-            Cache::flush();
-        }
-    }
-
-    /**
-     * Clear permission cache for a model.
-     *
-     * @param Model|null $model
-     * @param string|null $permissionName
-     * @param mixed $context
-     * @return void
-     */
-    public function clearCache(?Model $model = null, ?string $permissionName = null, $context = null): void
-    {
-        if (!$this->cacheEnabled()) {
-            return;
-        }
-
-        if ($model === null) {
-            // Clear all cache
-            Cache::tags($this->getCacheTag())->flush();
-        } else {
-            $contextId = $this->resolveContextId($context);
-            
-            if ($permissionName === null) {
-                // Clear all cache for the model
-                $pattern = $this->getCacheKeyPattern($model, '*', $contextId);
-                $this->clearCacheByPattern($pattern);
-            } else {
-                // Clear specific cache entry
-                $cacheKey = $this->getCacheKey($model, $permissionName, $contextId);
-                Cache::forget($cacheKey);
-            }
-        }
-    }
 
     /**
      * Check if model has direct permission.
@@ -345,124 +268,4 @@ class Rollo
         throw new \InvalidArgumentException('Invalid context provided.');
     }
 
-    /**
-     * Check if caching is enabled.
-     *
-     * @return bool
-     */
-    protected function cacheEnabled(): bool
-    {
-        return config('rollo.cache.enabled', true);
-    }
-
-    /**
-     * Get cache key for permission check.
-     *
-     * @param Model $model
-     * @param string $permissionName
-     * @param int|null $contextId
-     * @return string
-     */
-    protected function getCacheKey(Model $model, string $permissionName, ?int $contextId): string
-    {
-        $modelType = get_class($model);
-        $modelId = $model->getKey();
-        $contextPart = $contextId ?? 'null';
-        
-        return sprintf(
-            '%s:%s:%s:%s:%s',
-            config('rollo.cache.key', 'rollo.permissions'),
-            $modelType,
-            $modelId,
-            $permissionName,
-            $contextPart
-        );
-    }
-
-    /**
-     * Get cache key pattern.
-     *
-     * @param Model $model
-     * @param string $permissionPattern
-     * @param int|null $contextId
-     * @return string
-     */
-    protected function getCacheKeyPattern(Model $model, string $permissionPattern, ?int $contextId): string
-    {
-        $modelType = get_class($model);
-        $modelId = $model->getKey();
-        $contextPart = $contextId ?? 'null';
-        
-        return sprintf(
-            '%s:%s:%s:%s:%s',
-            config('rollo.cache.key', 'rollo.permissions'),
-            $modelType,
-            $modelId,
-            $permissionPattern,
-            $contextPart
-        );
-    }
-
-    /**
-     * Get cache tag.
-     *
-     * @return string
-     */
-    protected function getCacheTag(): string
-    {
-        return config('rollo.cache.key', 'rollo.permissions');
-    }
-
-    /**
-     * Get model-specific cache tag.
-     *
-     * @param Model $model
-     * @return string
-     */
-    protected function getModelCacheTag(Model $model): string
-    {
-        $modelType = get_class($model);
-        $modelId = $model->getKey();
-        
-        return sprintf('%s:%s:%s', $this->getCacheTag(), $modelType, $modelId);
-    }
-
-    /**
-     * Cache permission check result.
-     *
-     * @param Model $model
-     * @param string $permissionName
-     * @param int|null $contextId
-     * @param bool $result
-     * @return void
-     */
-    protected function cacheResult(Model $model, string $permissionName, ?int $contextId, bool $result): void
-    {
-        if (!$this->cacheEnabled()) {
-            return;
-        }
-
-        $cacheKey = $this->getCacheKey($model, $permissionName, $contextId);
-        $ttl = config('rollo.cache.ttl', 3600);
-        
-        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
-            $modelTag = $this->getModelCacheTag($model);
-            Cache::tags([$this->getCacheTag(), $modelTag])->put($cacheKey, $result, $ttl);
-        } else {
-            Cache::put($cacheKey, $result, $ttl);
-        }
-    }
-
-    /**
-     * Clear cache by pattern.
-     *
-     * @param string $pattern
-     * @return void
-     */
-    protected function clearCacheByPattern(string $pattern): void
-    {
-        // This is a simplified implementation
-        // In production, you might want to use Redis SCAN or similar
-        Cache::forget($pattern);
-    }
 }

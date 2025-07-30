@@ -58,11 +58,6 @@ trait HasRolloPermissions
         if (!$existingQuery->exists()) {
             $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
         }
-        
-        // Clear cache for this model
-        if (app()->bound('rollo')) {
-            app('rollo')->clearCacheFor($this);
-        }
     }
 
     /**
@@ -117,11 +112,6 @@ trait HasRolloPermissions
         }
 
         $query->detach();
-        
-        // Clear cache for this model
-        if (app()->bound('rollo')) {
-            app('rollo')->clearCacheFor($this);
-        }
     }
 
     /**
