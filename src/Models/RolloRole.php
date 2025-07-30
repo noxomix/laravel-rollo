@@ -155,12 +155,13 @@ class RolloRole extends Model
      * @param int|null $contextId
      * @return void
      */
-    public function givePermissionTo($permission, ?int $contextId = null): void
+    public function assignPermission($permission, ?int $contextId = null): void
     {
         if (is_string($permission)) {
-            $permission = RolloPermission::findByName($permission);
+            $permissionName = $permission;
+            $permission = RolloPermission::findByName($permissionName);
             if (!$permission) {
-                throw new \InvalidArgumentException("Permission '{$permission}' not found.");
+                throw new \InvalidArgumentException("Permission '{$permissionName}' not found.");
             }
         }
 
@@ -173,10 +174,11 @@ class RolloRole extends Model
      * @param RolloPermission|string $permission
      * @return void
      */
-    public function revokePermissionTo($permission): void
+    public function removePermission($permission): void
     {
         if (is_string($permission)) {
-            $permission = RolloPermission::findByName($permission);
+            $permissionName = $permission;
+            $permission = RolloPermission::findByName($permissionName);
             if (!$permission) {
                 return;
             }
@@ -194,9 +196,10 @@ class RolloRole extends Model
     public function assignChildRole($role): void
     {
         if (is_string($role)) {
-            $role = static::findByName($role, $this->context_id);
+            $roleName = $role;
+            $role = static::findByName($roleName, $this->context_id);
             if (!$role) {
-                throw new \InvalidArgumentException("Role '{$role}' not found.");
+                throw new \InvalidArgumentException("Role '{$roleName}' not found.");
             }
         }
 
@@ -217,12 +220,26 @@ class RolloRole extends Model
     public function removeChildRole($role): void
     {
         if (is_string($role)) {
-            $role = static::findByName($role, $this->context_id);
+            $roleName = $role;
+            $role = static::findByName($roleName, $this->context_id);
             if (!$role) {
                 return;
             }
         }
 
         $this->childRoles()->detach($role->id);
+    }
+
+    /**
+     * Check if this role has a specific permission.
+     * This checks direct permissions and inherited permissions through child roles.
+     *
+     * @param string $permission
+     * @param int|null $contextId
+     * @return bool
+     */
+    public function canPerform(string $permission, ?int $contextId = null): bool
+    {
+        return app('rollo')->can($this, $permission, $contextId);
     }
 }

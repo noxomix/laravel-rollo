@@ -56,19 +56,24 @@ class Tenant extends Model
 $permission = RolloPermission::create(['name' => 'edit-posts']);
 
 // Assign to user (global)
-$user->givePermissionTo('edit-posts');
+$user->assignPermission('edit-posts');
+
+// Assign multiple permissions
+$user->assignPermissions(['edit-posts', 'delete-posts', 'publish-posts']);
 
 // Assign with context
 $tenant = Tenant::find(1);
 $context = $tenant->becomeRolloContext();
-$user->givePermissionTo('edit-posts', $context);
+$user->assignPermission('edit-posts', $context);
 
 // Check permission
-$user->hasPermissionTo('edit-posts'); // global
-$user->hasPermissionTo('edit-posts', $context); // in context
+$user->hasPermission('edit-posts'); // global
+$user->hasPermission('edit-posts', $context); // in context
 
-// Revoke
-$user->revokePermissionTo('edit-posts');
+// Remove
+$user->removePermission('edit-posts');
+$user->removePermissions(['edit-posts', 'delete-posts']);
+$user->removeAllPermissions(); // remove all
 ```
 
 ### Roles
@@ -78,17 +83,21 @@ $user->revokePermissionTo('edit-posts');
 $role = RolloRole::create(['name' => 'editor']);
 
 // Assign permissions to role
-$role->givePermissionTo('edit-posts');
+$role->assignPermission('edit-posts');
 
 // Assign role to user
 $user->assignRole('editor');
 $user->assignRole('editor', $context); // with context
+
+// Assign multiple roles
+$user->assignRoles(['editor', 'moderator']);
 
 // Check role
 $user->hasRole('editor');
 
 // Remove role
 $user->removeRole('editor');
+$user->removeRoles(['editor', 'moderator']);
 ```
 
 ### Role Inheritance
@@ -171,9 +180,32 @@ $config = $role->getConfig('max_posts_per_day'); // 10
 
 ```php
 // Any model can have roles/permissions
-$team->givePermissionTo('manage-projects');
+$team->assignPermission('manage-projects');
 $bot->assignRole('data-processor');
-$service->givePermissionTo('api-access');
+$service->assignPermission('api-access');
+
+// Batch operations
+$team->assignPermissions(['create-projects', 'edit-projects', 'delete-projects']);
+$bot->assignRoles(['data-processor', 'api-consumer']);
+```
+
+### Permission Checking
+
+```php
+// Direct permission check
+if ($user->hasPermission('edit-posts')) {
+    // User has direct permission
+}
+
+// Check via roles and permissions (uses caching)
+if ($user->canPerform('edit-posts')) {
+    // User can perform action (direct or via roles)
+}
+
+// Check role has permission
+if ($role->canPerform('publish-posts')) {
+    // Role has this permission
+}
 ```
 
 ### Context Helpers

@@ -27,20 +27,21 @@ trait HasRolloPermissions
     }
 
     /**
-     * Give a permission to this model.
+     * Assign a permission to this model.
      *
      * @param RolloPermission|string $permission
      * @param RolloContext|int|null $context
      * @return void
      */
-    public function givePermissionTo($permission, $context = null): void
+    public function assignPermission($permission, $context = null): void
     {
         $contextId = $this->resolveContextId($context);
 
         if (is_string($permission)) {
-            $permission = RolloPermission::findByName($permission);
+            $permissionName = $permission;
+            $permission = RolloPermission::findByName($permissionName);
             if (!$permission) {
-                throw new \InvalidArgumentException("Permission '{$permission}' not found.");
+                throw new \InvalidArgumentException("Permission '{$permissionName}' not found.");
             }
         }
 
@@ -48,18 +49,33 @@ trait HasRolloPermissions
     }
 
     /**
-     * Revoke a permission from this model.
+     * Assign multiple permissions to this model.
+     *
+     * @param array $permissions Array of permission names, IDs or models
+     * @param RolloContext|int|null $context
+     * @return void
+     */
+    public function assignPermissions(array $permissions, $context = null): void
+    {
+        foreach ($permissions as $permission) {
+            $this->assignPermission($permission, $context);
+        }
+    }
+
+    /**
+     * Remove a permission from this model.
      *
      * @param RolloPermission|string $permission
      * @param RolloContext|int|null $context
      * @return void
      */
-    public function revokePermissionTo($permission, $context = null): void
+    public function removePermission($permission, $context = null): void
     {
         $contextId = $this->resolveContextId($context);
 
         if (is_string($permission)) {
-            $permission = RolloPermission::findByName($permission);
+            $permissionName = $permission;
+            $permission = RolloPermission::findByName($permissionName);
             if (!$permission) {
                 return;
             }
@@ -75,18 +91,32 @@ trait HasRolloPermissions
     }
 
     /**
+     * Remove multiple permissions from this model.
+     *
+     * @param array $permissions Array of permission names, IDs or models
+     * @param RolloContext|int|null $context
+     * @return void
+     */
+    public function removePermissions(array $permissions, $context = null): void
+    {
+        foreach ($permissions as $permission) {
+            $this->removePermission($permission, $context);
+        }
+    }
+
+    /**
      * Check if the model has a specific direct permission.
      *
      * @param RolloPermission|string $permission
      * @param RolloContext|int|null $context
      * @return bool
      */
-    public function hasPermissionTo($permission, $context = null): bool
+    public function hasPermission($permission, $context = null): bool
     {
         $contextId = $this->resolveContextId($context);
 
         if (is_string($permission)) {
-            $query = $this->permissions()->where('name', $permission);
+            $query = $this->permissions()->where('rollo_permissions.name', $permission);
         } else {
             $query = $this->permissions()->where('rollo_permissions.id', $permission->id);
         }
@@ -178,7 +208,7 @@ trait HasRolloPermissions
     public function hasAnyPermission(array $permissions, $context = null): bool
     {
         foreach ($permissions as $permission) {
-            if ($this->hasPermissionTo($permission, $context)) {
+            if ($this->hasPermission($permission, $context)) {
                 return true;
             }
         }
@@ -196,7 +226,7 @@ trait HasRolloPermissions
     public function hasAllPermissions(array $permissions, $context = null): bool
     {
         foreach ($permissions as $permission) {
-            if (!$this->hasPermissionTo($permission, $context)) {
+            if (!$this->hasPermission($permission, $context)) {
                 return false;
             }
         }
@@ -205,12 +235,12 @@ trait HasRolloPermissions
     }
 
     /**
-     * Revoke all permissions from this model.
+     * Remove all permissions from this model.
      *
      * @param RolloContext|int|null $context
      * @return void
      */
-    public function revokeAllPermissions($context = null): void
+    public function removeAllPermissions($context = null): void
     {
         $contextId = $this->resolveContextId($context);
 
@@ -219,5 +249,18 @@ trait HasRolloPermissions
         } else {
             $this->permissions()->detach();
         }
+    }
+
+    /**
+     * Check if the model can perform a specific action (permission).
+     * This checks both direct permissions and permissions through roles.
+     *
+     * @param string $permission
+     * @param RolloContext|int|null $context
+     * @return bool
+     */
+    public function canPerform(string $permission, $context = null): bool
+    {
+        return app('rollo')->can($this, $permission, $context);
     }
 }

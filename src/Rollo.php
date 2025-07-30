@@ -12,7 +12,7 @@ use Noxomix\LaravelRollo\Models\RolloRole;
 class Rollo
 {
     /**
-     * Check if a model has a specific permission.
+     * Check if a model can perform a specific action (permission).
      * This checks both direct permissions and permissions through roles (with recursive inheritance).
      *
      * @param Model $model
@@ -20,7 +20,7 @@ class Rollo
      * @param mixed $context
      * @return bool
      */
-    public function has(Model $model, string $permissionName, $context = null): bool
+    public function can(Model $model, string $permissionName, $context = null): bool
     {
         $contextId = $this->resolveContextId($context);
         
@@ -45,6 +45,19 @@ class Rollo
         $this->cacheResult($model, $permissionName, $contextId, $hasPermission);
         
         return $hasPermission;
+    }
+
+    /**
+     * Alias for can() method for backward compatibility.
+     *
+     * @param Model $model
+     * @param string $permissionName
+     * @param mixed $context
+     * @return bool
+     */
+    public function has(Model $model, string $permissionName, $context = null): bool
+    {
+        return $this->can($model, $permissionName, $context);
     }
 
     /**

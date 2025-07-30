@@ -38,9 +38,10 @@ trait HasRolloRoles
         $contextId = $this->resolveContextId($context);
 
         if (is_string($role)) {
-            $role = RolloRole::findByName($role, $contextId);
+            $roleName = $role;
+            $role = RolloRole::findByName($roleName, $contextId);
             if (!$role) {
-                throw new \InvalidArgumentException("Role '{$role}' not found in the given context.");
+                throw new \InvalidArgumentException("Role '{$roleName}' not found in the given context.");
             }
         }
 
@@ -50,6 +51,20 @@ trait HasRolloRoles
         }
 
         $this->roles()->syncWithoutDetaching([$role->id]);
+    }
+
+    /**
+     * Assign multiple roles to this model.
+     *
+     * @param array $roles Array of role names, IDs or models
+     * @param RolloContext|int|null $context
+     * @return void
+     */
+    public function assignRoles(array $roles, $context = null): void
+    {
+        foreach ($roles as $role) {
+            $this->assignRole($role, $context);
+        }
     }
 
     /**
@@ -64,13 +79,28 @@ trait HasRolloRoles
         $contextId = $this->resolveContextId($context);
 
         if (is_string($role)) {
-            $role = RolloRole::findByName($role, $contextId);
+            $roleName = $role;
+            $role = RolloRole::findByName($roleName, $contextId);
             if (!$role) {
                 return;
             }
         }
 
         $this->roles()->detach($role->id);
+    }
+
+    /**
+     * Remove multiple roles from this model.
+     *
+     * @param array $roles Array of role names, IDs or models
+     * @param RolloContext|int|null $context
+     * @return void
+     */
+    public function removeRoles(array $roles, $context = null): void
+    {
+        foreach ($roles as $role) {
+            $this->removeRole($role, $context);
+        }
     }
 
     /**
