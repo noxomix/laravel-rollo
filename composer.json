@@ -1,25 +1,23 @@
 {
     "name": "noxomix/laravel-rollo",
-    "description": "A Laravel package for Rollo functionality",
-    "keywords": ["laravel", "rollo"],
+    "description": "A context-based, polymorphic role and permission management system for Laravel",
+    "keywords": ["laravel", "rollo", "permissions", "roles", "context", "polymorphic"],
     "homepage": "https://github.com/noxomix/laravel-rollo",
     "license": "MIT",
     "authors": [
         {
-            "name": "Your Name",
-            "email": "your-email@example.com"
+            "name": "Noxomix",
+            "email": "contact@noxomix.com"
         }
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^10.0|^11.0|^12.0",
-        "spatie/laravel-package-tools": "^1.16"
+        "illuminate/support": "^10.0|^11.0",
+        "illuminate/database": "^10.0|^11.0"
     },
     "require-dev": {
         "orchestra/testbench": "^8.0|^9.0",
-        "phpunit/phpunit": "^10.0",
-        "pestphp/pest": "^2.0",
-        "pestphp/pest-plugin-laravel": "^2.0"
+        "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "psr-4": {
