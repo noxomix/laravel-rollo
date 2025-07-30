@@ -4,6 +4,7 @@ namespace Noxomix\LaravelRollo;
 
 use Illuminate\Support\ServiceProvider;
 use Noxomix\LaravelRollo\Commands\RolloCacheResetCommand;
+use Noxomix\LaravelRollo\Commands\RolloSetupCommand;
 
 class LaravelRolloServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,7 @@ class LaravelRolloServiceProvider extends ServiceProvider
 
             // Register commands
             $this->commands([
+                RolloSetupCommand::class,
                 // RolloCacheResetCommand::class, // Wird später implementiert
             ]);
         }
