@@ -10,7 +10,7 @@ use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 trait HasRolloPermissions
 {
-    use ResolvesRolloContext, AuthorizesRolloActions;
+    use ResolvesRolloContext;
     /**
      * Get all direct permissions for this model.
      *
@@ -36,9 +36,6 @@ trait HasRolloPermissions
      */
     public function assignPermission($permission, $context = null): void
     {
-        // Authorize the action
-        $this->authorizeRolloAction('assignPermission', $this, $permission);
-        
         $contextId = $this->resolveContextId($context);
 
         if (is_string($permission)) {
@@ -99,9 +96,6 @@ trait HasRolloPermissions
      */
     public function removePermission($permission, $context = null): void
     {
-        // Authorize the action
-        $this->authorizeRolloAction('revokePermission', $this);
-        
         $contextId = $this->resolveContextId($context);
 
         if (is_string($permission)) {
