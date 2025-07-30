@@ -22,8 +22,7 @@ class RolloValidator
      * Reserved names that cannot be used
      */
     const RESERVED_NAMES = [
-        'super', 'admin', 'root', 'system', 'null', 'undefined',
-        'true', 'false', 'yes', 'no', 'all', 'none', 'any'
+        'null', 'undefined', 'true', 'false', 'yes', 'no', 'all', 'none', 'any'
     ];
 
     /**
