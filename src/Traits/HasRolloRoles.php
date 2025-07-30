@@ -10,7 +10,7 @@ use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 trait HasRolloRoles
 {
-    use ResolvesRolloContext;
+    use ResolvesRolloContext, AuthorizesRolloActions;
     /**
      * Get all roles for this model.
      *
@@ -36,6 +36,9 @@ trait HasRolloRoles
      */
     public function assignRole($role, $context = null): void
     {
+        // Authorize the action
+        $this->authorizeRolloAction('assignRole', $this, $role);
+        
         $contextId = $this->resolveContextId($context);
 
         if (is_string($role)) {
@@ -79,6 +82,9 @@ trait HasRolloRoles
      */
     public function removeRole($role, $context = null): void
     {
+        // Authorize the action
+        $this->authorizeRolloAction('revokeRole', $this);
+        
         $contextId = $this->resolveContextId($context);
 
         if (is_string($role)) {
