@@ -5,7 +5,7 @@ namespace Noxomix\LaravelRollo\Traits;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Noxomix\LaravelRollo\Models\RolloContext;
 
-trait RolloHasContext
+trait AsRolloContext
 {
     /**
      * Get the Rollo context for this model.

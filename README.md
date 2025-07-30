@@ -39,11 +39,11 @@ class User extends Model
 ### 3. Add Context Trait
 
 ```php
-use Noxomix\LaravelRollo\Traits\RolloHasContext;
+use Noxomix\LaravelRollo\Traits\AsRolloContext;
 
 class Tenant extends Model
 {
-    use RolloHasContext;
+    use AsRolloContext;
 }
 ```
 
