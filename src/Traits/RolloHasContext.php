@@ -20,31 +20,41 @@ trait RolloHasContext
     /**
      * Create a Rollo context for this model.
      *
-     * @param string|null $name
+     * @param string|array|null $attributes
      * @return RolloContext
      */
-    public function createRolloContext(?string $name = null): RolloContext
+    public function createRolloContext($attributes = null): RolloContext
     {
         // Delete existing context if any
         $this->rolloContext()->delete();
 
+        // Handle both string (legacy) and array parameter
+        if (is_string($attributes)) {
+            $name = $attributes;
+        } elseif (is_array($attributes)) {
+            $name = $attributes['name'] ?? $this->getContextName();
+        } else {
+            $name = $this->getContextName();
+        }
+
         // Create new context
         return $this->rolloContext()->create([
-            'name' => $name ?? $this->getContextName(),
+            'name' => $name,
         ]);
     }
 
     /**
      * Get or create the Rollo context for this model.
      *
-     * @param string|null $name
+     * @param array|null $attributes
      * @return RolloContext
      */
-    public function getRolloContext(?string $name = null): RolloContext
+    public function becomeRolloContext(?array $attributes = []): RolloContext
     {
         $context = $this->rolloContext;
 
         if (!$context) {
+            $name = $attributes['name'] ?? $this->getContextName();
             $context = $this->createRolloContext($name);
         }
 
@@ -75,6 +85,29 @@ trait RolloHasContext
     }
 
     /**
+     * Update the Rollo context name for this model.
+     *
+     * @param array|null $attributes
+     * @return RolloContext|null
+     */
+    public function updateRolloContext(?array $attributes = []): ?RolloContext
+    {
+        $context = $this->rolloContext;
+
+        if (!$context) {
+            return null;
+        }
+
+        $name = $attributes['name'] ?? $this->getContextName();
+        
+        $context->update([
+            'name' => $name,
+        ]);
+
+        return $context;
+    }
+
+    /**
      * Delete the Rollo context for this model.
      *
      * @return void
@@ -91,7 +124,7 @@ trait RolloHasContext
      */
     public function getContextRoles()
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         return $context->roles;
     }
 
@@ -102,7 +135,7 @@ trait RolloHasContext
      */
     public function getContextPermissions()
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         return $context->permissions();
     }
 
@@ -114,7 +147,7 @@ trait RolloHasContext
      */
     public function getModelsWithRolesInContext(string $modelClass)
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         return $context->modelsWithRoles($modelClass);
     }
 
@@ -126,7 +159,7 @@ trait RolloHasContext
      */
     public function getModelsWithPermissionsInContext(string $modelClass)
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         return $context->modelsWithPermissions($modelClass);
     }
 
@@ -139,7 +172,7 @@ trait RolloHasContext
      */
     public function createRoleInContext(string $name, array $attributes = [])
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         
         return $context->roles()->create(array_merge([
             'name' => $name,
@@ -154,7 +187,7 @@ trait RolloHasContext
      */
     public function findRoleInContext(string $name)
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         
         return $context->roles()->where('name', $name)->first();
     }
@@ -166,7 +199,7 @@ trait RolloHasContext
      */
     public function deleteAllRolesInContext(): void
     {
-        $context = $this->getRolloContext();
+        $context = $this->becomeRolloContext();
         $context->roles()->delete();
     }
 }
