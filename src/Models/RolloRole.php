@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
+use Noxomix\LaravelRollo\Traits\HasRolloPermissions;
 
 class RolloRole extends Model
 {
+    use HasRolloPermissions;
     /**
      * The table associated with the model.
      *
@@ -93,21 +95,6 @@ class RolloRole extends Model
         );
     }
 
-    /**
-     * Get permissions assigned to this role.
-     *
-     * @return MorphToMany
-     */
-    public function permissions(): MorphToMany
-    {
-        return $this->morphToMany(
-            RolloPermission::class,
-            'model',
-            'rollo_model_has_permissions',
-            'model_id',
-            'permission_id'
-        )->withPivot('context_id');
-    }
 
     /**
      * Get child roles (roles assigned to this role for inheritance).
@@ -177,44 +164,6 @@ class RolloRole extends Model
         return $role;
     }
 
-    /**
-     * Assign a permission to this role.
-     *
-     * @param RolloPermission|string $permission
-     * @param int|null $contextId
-     * @return void
-     */
-    public function assignPermission($permission, ?int $contextId = null): void
-    {
-        if (is_string($permission)) {
-            $permissionName = $permission;
-            $permission = RolloPermission::findByName($permissionName);
-            if (!$permission) {
-                throw new \InvalidArgumentException("Permission '{$permissionName}' not found.");
-            }
-        }
-
-        $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
-    }
-
-    /**
-     * Remove a permission from this role.
-     *
-     * @param RolloPermission|string $permission
-     * @return void
-     */
-    public function removePermission($permission): void
-    {
-        if (is_string($permission)) {
-            $permissionName = $permission;
-            $permission = RolloPermission::findByName($permissionName);
-            if (!$permission) {
-                return;
-            }
-        }
-
-        $this->permissions()->detach($permission->id);
-    }
 
     /**
      * Assign a child role (for inheritance).
@@ -310,18 +259,6 @@ class RolloRole extends Model
         $this->childRoles()->detach($role->id);
     }
 
-    /**
-     * Check if this role has a specific permission.
-     * This checks direct permissions and inherited permissions through child roles.
-     *
-     * @param string $permission
-     * @param int|null $contextId
-     * @return bool
-     */
-    public function canPerform(string $permission, ?int $contextId = null): bool
-    {
-        return app('rollo')->can($this, $permission, $contextId);
-    }
 
     /**
      * Get a config value by key (supports dot notation).
