@@ -1,0 +1,62 @@
+{
+    "name": "noxomix/laravel-rollo",
+    "description": "A Laravel package for Rollo functionality",
+    "keywords": ["laravel", "rollo"],
+    "homepage": "https://github.com/noxomix/laravel-rollo",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your-email@example.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0",
+        "phpunit/phpunit": "^10.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Noxomix\\LaravelRollo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Noxomix\\LaravelRollo\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Noxomix\\LaravelRollo\\LaravelRolloServiceProvider"
+            ],
+            "aliases": {
+                "Rollo": "Noxomix\\LaravelRollo\\Facades\\Rollo"
+            }
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test:phpunit": "vendor/bin/phpunit",
+        "test:coverage": "vendor/bin/pest --coverage",
+        "post-autoload-dump": "@composer run prepare",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": [
+            "@composer run prepare",
+            "@php vendor/bin/testbench workbench:build --ansi"
+        ],
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@composer run build",
+            "@php vendor/bin/testbench serve --ansi"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

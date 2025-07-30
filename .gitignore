@@ -1,0 +1,14 @@
+/vendor
+/composer.lock
+/.phpunit.cache
+.phpunit.result.cache
+.DS_Store
+.idea
+.vscode
+/workbench/database/database.sqlite
+/workbench/.env
+/workbench/bootstrap/cache/*
+/workbench/storage/*
+/build
+/coverage
+/test-projects
