@@ -45,7 +45,24 @@ trait HasRolloPermissions
             }
         }
 
-        $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
+        // Check if this exact permission-context combination already exists
+        $existingQuery = $this->permissions()->where('permission_id', $permission->id);
+        
+        if ($contextId !== null) {
+            $existingQuery->wherePivot('context_id', $contextId);
+        } else {
+            $existingQuery->wherePivotNull('context_id');
+        }
+        
+        // Only attach if it doesn't already exist
+        if (!$existingQuery->exists()) {
+            $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
+        }
+        
+        // Clear cache for this model
+        if (app()->bound('rollo')) {
+            app('rollo')->clearCacheFor($this);
+        }
     }
 
     /**
@@ -58,7 +75,17 @@ trait HasRolloPermissions
     public function assignPermissions(array $permissions, $context = null): void
     {
         foreach ($permissions as $permission) {
-            $this->assignPermission($permission, $context);
+            // Skip null or empty values
+            if (empty($permission)) {
+                continue;
+            }
+            
+            try {
+                $this->assignPermission($permission, $context);
+            } catch (\InvalidArgumentException $e) {
+                // Skip invalid permissions in batch operations
+                continue;
+            }
         }
     }
 
@@ -85,9 +112,16 @@ trait HasRolloPermissions
         
         if ($contextId !== null) {
             $query->wherePivot('context_id', $contextId);
+        } else {
+            $query->wherePivotNull('context_id');
         }
 
         $query->detach();
+        
+        // Clear cache for this model
+        if (app()->bound('rollo')) {
+            app('rollo')->clearCacheFor($this);
+        }
     }
 
     /**
@@ -123,6 +157,8 @@ trait HasRolloPermissions
 
         if ($contextId !== null) {
             $query->wherePivot('context_id', $contextId);
+        } else {
+            $query->wherePivotNull('context_id');
         }
 
         return $query->exists();

@@ -208,7 +208,58 @@ class RolloRole extends Model
             throw new \InvalidArgumentException("A role cannot inherit from itself.");
         }
 
+        // Check for circular inheritance
+        if ($this->wouldCreateCircularInheritance($role)) {
+            throw new \InvalidArgumentException("This would create a circular role inheritance.");
+        }
+
         $this->childRoles()->attach($role->id);
+    }
+
+    /**
+     * Check if assigning a child role would create circular inheritance.
+     *
+     * @param RolloRole $childRole
+     * @return bool
+     */
+    protected function wouldCreateCircularInheritance(RolloRole $childRole): bool
+    {
+        // Check if this role is already in the child role's inheritance chain
+        $visited = [];
+        return $this->isInInheritanceChain($childRole, $this->id, $visited);
+    }
+
+    /**
+     * Recursively check if a role ID exists in the inheritance chain.
+     *
+     * @param RolloRole $role
+     * @param int $searchId
+     * @param array &$visited
+     * @return bool
+     */
+    protected function isInInheritanceChain(RolloRole $role, int $searchId, array &$visited): bool
+    {
+        // Prevent infinite loops
+        if (in_array($role->id, $visited)) {
+            return false;
+        }
+        
+        $visited[] = $role->id;
+        
+        // Load child roles if not already loaded
+        $role->load('childRoles');
+        
+        foreach ($role->childRoles as $childRole) {
+            if ($childRole->id === $searchId) {
+                return true;
+            }
+            
+            if ($this->isInInheritanceChain($childRole, $searchId, $visited)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**
@@ -241,5 +292,17 @@ class RolloRole extends Model
     public function canPerform(string $permission, ?int $contextId = null): bool
     {
         return app('rollo')->can($this, $permission, $contextId);
+    }
+
+    /**
+     * Get a config value by key (supports dot notation).
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getConfig(string $key, $default = null)
+    {
+        return data_get($this->config, $key, $default);
     }
 }

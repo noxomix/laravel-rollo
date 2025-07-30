@@ -27,7 +27,14 @@ class Rollo
         // Check cache first if enabled
         if ($this->cacheEnabled()) {
             $cacheKey = $this->getCacheKey($model, $permissionName, $contextId);
-            $cached = Cache::get($cacheKey);
+            
+            if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+                $modelTag = $this->getModelCacheTag($model);
+                $cached = Cache::tags([$this->getCacheTag(), $modelTag])->get($cacheKey);
+            } else {
+                $cached = Cache::get($cacheKey);
+            }
+            
             if ($cached !== null) {
                 return $cached;
             }
@@ -106,6 +113,30 @@ class Rollo
         }
         
         return $allRoles;
+    }
+
+    /**
+     * Clear all cache for a specific model.
+     *
+     * @param Model $model
+     * @return void
+     */
+    public function clearCacheFor(Model $model): void
+    {
+        if (!$this->cacheEnabled()) {
+            return;
+        }
+        
+        // Since we can't use wildcards with Cache::forget(),
+        // we'll use tags if available, or flush all rollo cache
+        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+            $modelTag = $this->getModelCacheTag($model);
+            Cache::tags([$this->getCacheTag(), $modelTag])->flush();
+        } else {
+            // For non-taggable cache stores, we need to clear all rollo cache
+            // This is not ideal but necessary for cache consistency
+            Cache::flush();
+        }
     }
 
     /**
@@ -383,6 +414,20 @@ class Rollo
     }
 
     /**
+     * Get model-specific cache tag.
+     *
+     * @param Model $model
+     * @return string
+     */
+    protected function getModelCacheTag(Model $model): string
+    {
+        $modelType = get_class($model);
+        $modelId = $model->getKey();
+        
+        return sprintf('%s:%s:%s', $this->getCacheTag(), $modelType, $modelId);
+    }
+
+    /**
      * Cache permission check result.
      *
      * @param Model $model
@@ -400,7 +445,12 @@ class Rollo
         $cacheKey = $this->getCacheKey($model, $permissionName, $contextId);
         $ttl = config('rollo.cache.ttl', 3600);
         
-        Cache::put($cacheKey, $result, $ttl);
+        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+            $modelTag = $this->getModelCacheTag($model);
+            Cache::tags([$this->getCacheTag(), $modelTag])->put($cacheKey, $result, $ttl);
+        } else {
+            Cache::put($cacheKey, $result, $ttl);
+        }
     }
 
     /**

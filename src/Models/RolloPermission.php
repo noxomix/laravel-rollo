@@ -80,4 +80,16 @@ class RolloPermission extends Model
 
         return $permission;
     }
+
+    /**
+     * Get a config value by key (supports dot notation).
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getConfig(string $key, $default = null)
+    {
+        return data_get($this->config, $key, $default);
+    }
 }
