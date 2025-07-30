@@ -22,7 +22,6 @@ return [
     */
     'allowed_models' => [
         \App\Models\User::class,
-        \App\Models\Tenant::class,
         // Add more models as needed
     ],
 ];
