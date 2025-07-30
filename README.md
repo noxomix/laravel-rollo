@@ -1,109 +1,225 @@
 # Laravel Rollo
 
-## Development Workflow
+Context-based, polymorphic role and permission management for Laravel.
 
-### Quick Start
+## Installation
 
 ```bash
-# Initialize package
-./scripts/dev-workflow.sh init
-
-# Test in Orchestra Testbench workbench
-./scripts/dev-workflow.sh workbench:test
-
-# Test in fresh Laravel installation
-./scripts/dev-workflow.sh test:fresh
+composer require noxomix/laravel-rollo
 ```
 
-### Available Commands
+## Features
 
-#### 1. Orchestra Testbench (Recommended for Package Testing)
+- **Polymorphic** - Any model can have roles and permissions
+- **Context-based** - All permissions are scoped to contexts (tenants, teams, projects)
+- **Recursive role inheritance** - Roles can inherit from other roles
+- **No guard_names** - Works without Laravel's guard system
+- **Cache optimized** - Built-in caching for permission checks
+
+## Quick Start
+
+### 1. Run Migrations
 
 ```bash
-# Run tests
+php artisan migrate
+```
+
+### 2. Add Traits to Models
+
+```php
+use Noxomix\LaravelRollo\Traits\HasRolloRoles;
+use Noxomix\LaravelRollo\Traits\HasRolloPermissions;
+
+class User extends Model
+{
+    use HasRolloRoles, HasRolloPermissions;
+}
+```
+
+### 3. Add Context Trait
+
+```php
+use Noxomix\LaravelRollo\Traits\RolloHasContext;
+
+class Tenant extends Model
+{
+    use RolloHasContext;
+}
+```
+
+## Usage
+
+### Permissions
+
+```php
+// Create permission
+$permission = RolloPermission::create(['name' => 'edit-posts']);
+
+// Assign to user (global)
+$user->givePermissionTo('edit-posts');
+
+// Assign with context
+$tenant = Tenant::find(1);
+$context = $tenant->becomeRolloContext();
+$user->givePermissionTo('edit-posts', $context);
+
+// Check permission
+$user->hasPermissionTo('edit-posts'); // global
+$user->hasPermissionTo('edit-posts', $context); // in context
+
+// Revoke
+$user->revokePermissionTo('edit-posts');
+```
+
+### Roles
+
+```php
+// Create role
+$role = RolloRole::create(['name' => 'editor']);
+
+// Assign permissions to role
+$role->givePermissionTo('edit-posts');
+
+// Assign role to user
+$user->assignRole('editor');
+$user->assignRole('editor', $context); // with context
+
+// Check role
+$user->hasRole('editor');
+
+// Remove role
+$user->removeRole('editor');
+```
+
+### Role Inheritance
+
+```php
+$adminRole = RolloRole::create(['name' => 'admin']);
+$editorRole = RolloRole::create(['name' => 'editor']);
+
+// Admin inherits all editor permissions
+$adminRole->assignChildRole($editorRole);
+```
+
+### Context Management
+
+```php
+// Create context
+$context = $tenant->becomeRolloContext(); // auto-creates if not exists
+$context = $tenant->becomeRolloContext(['name' => 'EU_Production']); // custom name
+
+// Update context
+$tenant->updateRolloContext(); // updates to default name
+$tenant->updateRolloContext(['name' => 'New_Name']); // custom name
+
+// Check if has context
+if ($tenant->hasRolloContext()) {
+    // ...
+}
+
+// Delete context
+$tenant->deleteRolloContext();
+```
+
+### Service Class
+
+```php
+use Noxomix\LaravelRollo\Facades\Rollo;
+
+// Check permission (with caching)
+if (Rollo::has($user, 'edit-posts')) {
+    // ...
+}
+
+// Check in context
+if (Rollo::has($user, 'edit-posts', $context)) {
+    // ...
+}
+
+// Get all permissions
+$permissions = Rollo::permissionsFor($user);
+$permissions = Rollo::permissionsFor($user, $context);
+
+// Get all roles
+$roles = Rollo::rolesFor($user);
+$roles = Rollo::rolesFor($user, $context);
+
+// Clear cache
+Rollo::clearCache();
+Rollo::clearCacheFor($user);
+```
+
+## Advanced Usage
+
+### JSON Configuration
+
+```php
+// Store additional config in roles/permissions
+$role = RolloRole::create([
+    'name' => 'moderator',
+    'config' => [
+        'max_posts_per_day' => 10,
+        'can_ban_users' => true
+    ]
+]);
+
+// Access config
+$config = $role->getConfig('max_posts_per_day'); // 10
+```
+
+### Polymorphic Support
+
+```php
+// Any model can have roles/permissions
+$team->givePermissionTo('manage-projects');
+$bot->assignRole('data-processor');
+$service->givePermissionTo('api-access');
+```
+
+### Context Helpers
+
+```php
+// Get all roles in context
+$roles = $tenant->getContextRoles();
+
+// Create role in context
+$role = $tenant->createRoleInContext('team-admin', ['order' => 1]);
+
+// Find role in context
+$role = $tenant->findRoleInContext('team-admin');
+
+// Get models with permissions in context
+$users = $tenant->getModelsWithPermissionsInContext(User::class);
+```
+
+## Database Schema
+
+- `rollo_permissions` - Permission definitions
+- `rollo_roles` - Role definitions with parent/child relationships
+- `rollo_contexts` - Polymorphic contexts (tenants, teams, etc.)
+- `rollo_model_has_roles` - Polymorphic role assignments
+- `rollo_model_has_permissions` - Polymorphic permission assignments
+
+## Cache
+
+Permission checks are cached for performance. Clear cache when needed:
+
+```bash
+php artisan rollo:clear-cache
+```
+
+Or programmatically:
+
+```php
+Rollo::clearCache();
+```
+
+## Testing
+
+```bash
 composer test
-
-# Start workbench server
-composer run serve
-
-# Test artisan commands in isolation
-php vendor/bin/testbench artisan rollo:install
-php vendor/bin/testbench artisan vendor:publish --tag=rollo-config
 ```
 
-#### 2. Testing in Fresh Laravel Projects
+## License
 
-```bash
-# Create and test in new Laravel project
-./scripts/test-in-laravel.sh [project-name]
-
-# This will:
-# - Create a fresh Laravel installation
-# - Install your package from local path
-# - Run rollo:install command
-# - Test basic functionality
-```
-
-#### 3. Development Scripts
-
-```bash
-# Show all available commands
-./scripts/dev-workflow.sh help
-
-# Initialize package
-./scripts/dev-workflow.sh init
-
-# Run package tests
-./scripts/dev-workflow.sh test
-
-# Test in fresh Laravel
-./scripts/dev-workflow.sh test:fresh
-
-# Start workbench server
-./scripts/dev-workflow.sh workbench
-
-# Test in workbench
-./scripts/dev-workflow.sh workbench:test
-
-# Test publishing
-./scripts/dev-workflow.sh publish:test
-
-# Clean up everything
-./scripts/dev-workflow.sh clean
-```
-
-### Manual Testing in Existing Laravel Project
-
-```bash
-# In your Laravel project's composer.json, add:
-"repositories": [
-    {
-        "type": "path",
-        "url": "../laravel-rollo"
-    }
-]
-
-# Install package
-composer require noxomix/laravel-rollo:@dev
-
-# Run install command
-php artisan rollo:install --with-migrations
-
-# Update package after changes
-composer update noxomix/laravel-rollo
-```
-
-### Package Features
-
-- **Install Command**: `php artisan rollo:install`
-- **Config Publishing**: `php artisan vendor:publish --tag=rollo-config`
-- **Migration Publishing**: `php artisan vendor:publish --tag=rollo-migrations`
-- **Facade**: `Rollo::greet('Name')`
-- **Routes**: `/rollo`
-
-### Testing Best Practices
-
-1. **Unit/Feature Tests**: Use `composer test` for automated testing
-2. **Integration Testing**: Use workbench for testing in Laravel context
-3. **Real-world Testing**: Use `test-in-laravel.sh` for fresh installations
-4. **Clean Environment**: Use `clean-test.sh` to reset everything
+MIT
