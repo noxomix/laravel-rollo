@@ -4,7 +4,6 @@
 /.gitignore export-ignore
 /phpunit.xml export-ignore
 /testbench.yaml export-ignore
-/tests export-ignore
 /scripts export-ignore
 /workbench export-ignore
 /.editorconfig export-ignore
