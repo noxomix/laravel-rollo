@@ -4,6 +4,7 @@ namespace Noxomix\LaravelRollo\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 class RolloPermission extends Model
 {
@@ -34,6 +35,34 @@ class RolloPermission extends Model
         'config' => 'array',
         'order' => 'double',
     ];
+
+    /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Validate on creating
+        static::creating(function ($permission) {
+            RolloValidator::validatePermissionName($permission->name);
+            if ($permission->config !== null) {
+                RolloValidator::validateConfig($permission->config);
+            }
+        });
+
+        // Validate on updating
+        static::updating(function ($permission) {
+            if ($permission->isDirty('name')) {
+                RolloValidator::validatePermissionName($permission->name);
+            }
+            if ($permission->isDirty('config')) {
+                RolloValidator::validateConfig($permission->config);
+            }
+        });
+    }
 
     /**
      * Get all models that have this permission.

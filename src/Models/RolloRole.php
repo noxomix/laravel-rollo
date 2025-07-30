@@ -5,6 +5,7 @@ namespace Noxomix\LaravelRollo\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 class RolloRole extends Model
 {
@@ -36,6 +37,34 @@ class RolloRole extends Model
         'config' => 'array',
         'order' => 'double',
     ];
+
+    /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Validate on creating
+        static::creating(function ($role) {
+            RolloValidator::validateRoleName($role->name);
+            if ($role->config !== null) {
+                RolloValidator::validateConfig($role->config);
+            }
+        });
+
+        // Validate on updating
+        static::updating(function ($role) {
+            if ($role->isDirty('name')) {
+                RolloValidator::validateRoleName($role->name);
+            }
+            if ($role->isDirty('config')) {
+                RolloValidator::validateConfig($role->config);
+            }
+        });
+    }
 
     /**
      * Get the context that this role belongs to.

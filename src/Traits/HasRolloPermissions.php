@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloContext;
+use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 trait HasRolloPermissions
 {
@@ -39,6 +40,8 @@ trait HasRolloPermissions
 
         if (is_string($permission)) {
             $permissionName = $permission;
+            // Validate permission name
+            RolloValidator::validatePermissionName($permissionName);
             $permission = RolloPermission::findByName($permissionName);
             if (!$permission) {
                 throw new \InvalidArgumentException("Permission '{$permissionName}' not found.");

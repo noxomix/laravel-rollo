@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloRole;
 use Noxomix\LaravelRollo\Models\RolloContext;
+use Noxomix\LaravelRollo\Validators\RolloValidator;
 
 trait HasRolloRoles
 {
@@ -39,6 +40,8 @@ trait HasRolloRoles
 
         if (is_string($role)) {
             $roleName = $role;
+            // Validate role name
+            RolloValidator::validateRoleName($roleName);
             $role = RolloRole::findByName($roleName, $contextId);
             if (!$role) {
                 throw new \InvalidArgumentException("Role '{$roleName}' not found in the given context.");
