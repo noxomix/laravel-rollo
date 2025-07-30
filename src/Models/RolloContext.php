@@ -5,6 +5,7 @@ namespace Noxomix\LaravelRollo\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Noxomix\LaravelRollo\Helpers\ModelValidator;
 
 class RolloContext extends Model
 {
@@ -103,13 +104,20 @@ class RolloContext extends Model
      */
     public function modelsWithPermissions(string $modelClass)
     {
+        // Validate model class
+        ModelValidator::validateModelClass($modelClass);
+        
+        $model = new $modelClass;
+        $tableName = ModelValidator::sanitizeTableName($model->getTable());
+        
         return $modelClass::query()
-            ->join('rollo_model_has_permissions', function ($join) use ($modelClass) {
-                $join->on('rollo_model_has_permissions.model_id', '=', (new $modelClass)->getTable() . '.id')
+            ->join('rollo_model_has_permissions', function ($join) use ($modelClass, $tableName) {
+                $join->on('rollo_model_has_permissions.model_id', '=', $tableName . '.id')
                     ->where('rollo_model_has_permissions.model_type', '=', $modelClass);
             })
             ->where('rollo_model_has_permissions.context_id', $this->id)
             ->distinct()
+            ->select($tableName . '.*')
             ->get();
     }
 
@@ -121,14 +129,21 @@ class RolloContext extends Model
      */
     public function modelsWithRoles(string $modelClass)
     {
+        // Validate model class
+        ModelValidator::validateModelClass($modelClass);
+        
+        $model = new $modelClass;
+        $tableName = ModelValidator::sanitizeTableName($model->getTable());
+        
         return $modelClass::query()
-            ->join('rollo_model_has_roles', function ($join) use ($modelClass) {
-                $join->on('rollo_model_has_roles.model_id', '=', (new $modelClass)->getTable() . '.id')
+            ->join('rollo_model_has_roles', function ($join) use ($modelClass, $tableName) {
+                $join->on('rollo_model_has_roles.model_id', '=', $tableName . '.id')
                     ->where('rollo_model_has_roles.model_type', '=', $modelClass);
             })
             ->join('rollo_roles', 'rollo_model_has_roles.role_id', '=', 'rollo_roles.id')
             ->where('rollo_roles.context_id', $this->id)
             ->distinct()
+            ->select($tableName . '.*')
             ->get();
     }
 }

@@ -16,10 +16,10 @@ class Rollo
      *
      * @param Model $model
      * @param string $permissionName
-     * @param mixed $context
+     * @param mixed|null $context
      * @return bool
      */
-    public function can(Model $model, string $permissionName, $context = null): bool
+    public function can(Model $model, string $permissionName, mixed $context = null): bool
     {
         $contextId = $this->resolveContextId($context);
 
@@ -37,10 +37,10 @@ class Rollo
      *
      * @param Model $model
      * @param string $permissionName
-     * @param mixed $context
+     * @param mixed|null $context
      * @return bool
      */
-    public function has(Model $model, string $permissionName, $context = null): bool
+    public function has(Model $model, string $permissionName, mixed $context = null): bool
     {
         return $this->can($model, $permissionName, $context);
     }
@@ -50,10 +50,10 @@ class Rollo
      * This includes direct permissions and permissions through roles (with recursive inheritance).
      *
      * @param Model $model
-     * @param mixed $context
+     * @param mixed|null $context
      * @return Collection
      */
-    public function permissionsFor(Model $model, $context = null): Collection
+    public function permissionsFor(Model $model, mixed $context = null): Collection
     {
         $contextId = $this->resolveContextId($context);
         
@@ -246,7 +246,7 @@ class Rollo
      * @param mixed $context
      * @return int|null
      */
-    protected function resolveContextId($context): ?int
+    protected function resolveContextId(mixed $context): ?int
     {
         if ($context === null) {
             return null;
@@ -262,7 +262,7 @@ class Rollo
 
         if (is_object($context) && method_exists($context, 'getKey')) {
             $contextModel = RolloContext::findByModel($context);
-            return $contextModel ? $contextModel->id : null;
+            return $contextModel?->id;
         }
 
         throw new \InvalidArgumentException('Invalid context provided.');
