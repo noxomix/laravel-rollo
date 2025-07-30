@@ -67,13 +67,13 @@ class RolloSetupCommand extends Command
                 '--force' => false,
             ]);
             info('Migrations published successfully!');
-            
-            // Ask if user wants to run migrations
-            if (confirm('Do you want to run the migrations now?', false)) {
-                info('Running migrations...');
-                $this->call('migrate');
-                info('Migrations completed!');
-            }
+        }
+        
+        // Ask if user wants to run migrations (always ask, regardless of publishing choice)
+        if (confirm('Do you want to run the migrations now?', false)) {
+            info('Running migrations...');
+            $this->call('migrate');
+            info('Migrations completed!');
         }
 
         info('Rollo setup completed!');
