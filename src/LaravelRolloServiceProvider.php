@@ -5,6 +5,7 @@ namespace Noxomix\LaravelRollo;
 use Illuminate\Support\ServiceProvider;
 use Noxomix\LaravelRollo\Commands\RolloCacheResetCommand;
 use Noxomix\LaravelRollo\Commands\RolloSetupCommand;
+use Noxomix\LaravelRollo\Commands\RolloAuditCleanupCommand;
 
 class LaravelRolloServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,7 @@ class LaravelRolloServiceProvider extends ServiceProvider
             // Register commands
             $this->commands([
                 RolloSetupCommand::class,
+                RolloAuditCleanupCommand::class,
                 // RolloCacheResetCommand::class, // Wird später implementiert
             ]);
         }
@@ -48,6 +50,11 @@ class LaravelRolloServiceProvider extends ServiceProvider
         // Register singleton
         $this->app->singleton('rollo', function ($app) {
             return new Rollo();
+        });
+
+        // Register audit service
+        $this->app->singleton('rollo.audit', function ($app) {
+            return new \Noxomix\LaravelRollo\Services\RolloAuditService();
         });
     }
 

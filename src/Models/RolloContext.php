@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Noxomix\LaravelRollo\Helpers\ModelValidator;
+use Noxomix\LaravelRollo\Traits\AuditsModelOperations;
 
 class RolloContext extends Model
 {
+    use AuditsModelOperations;
     /**
      * The table associated with the model.
      *

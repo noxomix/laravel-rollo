@@ -5,9 +5,11 @@ namespace Noxomix\LaravelRollo\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
+use Noxomix\LaravelRollo\Traits\AuditsModelOperations;
 
 class RolloPermission extends Model
 {
+    use AuditsModelOperations;
     /**
      * The table associated with the model.
      *
