@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
-use Noxomix\LaravelRollo\Facades\RolloAudit;
 
 trait HasRolloPermissions
 {
@@ -62,14 +61,6 @@ trait HasRolloPermissions
         if (!$existingQuery->exists()) {
             $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
             
-            // Log the audit event
-            RolloAudit::log(
-                'permission.assigned',
-                $permission,
-                $this,
-                [],
-                ['permission' => $permission->name, 'context_id' => $contextId]
-            );
         }
     }
 
@@ -124,21 +115,7 @@ trait HasRolloPermissions
             $query->wherePivotNull('context_id');
         }
 
-        // Get the permissions that will be removed for audit logging
-        $removedPermissions = $query->get();
-        
         $query->detach();
-        
-        // Log the audit event for each removed permission
-        foreach ($removedPermissions as $removedPermission) {
-            RolloAudit::log(
-                'permission.removed',
-                $removedPermission,
-                $this,
-                ['permission' => $removedPermission->name, 'context_id' => $contextId],
-                []
-            );
-        }
     }
 
     /**
@@ -247,16 +224,8 @@ trait HasRolloPermissions
                 $this->permissions()->attach($permId, $pivotData);
             }
             
-            // Log sync event with context
-            $this->logPermissionSync($sync, $contextId);
         } else {
-            // Get current permissions before sync for audit
-            $oldPermissions = $this->permissions()->pluck('rollo_permissions.id')->toArray();
-            
             $this->permissions()->sync($sync);
-            
-            // Log sync event
-            $this->logPermissionSync($sync, null, $oldPermissions);
         }
     }
 
@@ -326,36 +295,4 @@ trait HasRolloPermissions
         return app('rollo')->can($this, $permission, $context);
     }
 
-    /**
-     * Log permission sync operation.
-     *
-     * @param array $newPermissions
-     * @param int|null $contextId
-     * @param array|null $oldPermissionIds
-     * @return void
-     */
-    protected function logPermissionSync(array $newPermissions, ?int $contextId = null, ?array $oldPermissionIds = null): void
-    {
-        // Get old permission names
-        $oldPermissionNames = [];
-        if ($oldPermissionIds !== null) {
-            $oldPermissionNames = RolloPermission::whereIn('id', $oldPermissionIds)
-                ->pluck('name')
-                ->toArray();
-        }
-        
-        // Get new permission names
-        $newPermissionIds = array_keys($newPermissions);
-        $newPermissionNames = RolloPermission::whereIn('id', $newPermissionIds)
-            ->pluck('name')
-            ->toArray();
-        
-        RolloAudit::log(
-            'permission.synced',
-            null,
-            $this,
-            ['permissions' => $oldPermissionNames, 'context_id' => $contextId],
-            ['permissions' => $newPermissionNames, 'context_id' => $contextId]
-        );
-    }
 }

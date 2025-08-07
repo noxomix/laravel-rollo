@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloRole;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
-use Noxomix\LaravelRollo\Facades\RolloAudit;
 
 trait HasRolloRoles
 {
@@ -58,14 +57,6 @@ trait HasRolloRoles
         if (!$this->roles()->where('role_id', $role->id)->exists()) {
             $this->roles()->attach($role->id);
             
-            // Log the audit event
-            RolloAudit::log(
-                'role.assigned',
-                $role,
-                $this,
-                [],
-                ['role' => $role->name, 'context_id' => $role->context_id]
-            );
         }
     }
 
@@ -106,14 +97,6 @@ trait HasRolloRoles
         if ($this->roles()->where('role_id', $role->id)->exists()) {
             $this->roles()->detach($role->id);
             
-            // Log the audit event
-            RolloAudit::log(
-                'role.removed',
-                $role,
-                $this,
-                ['role' => $role->name, 'context_id' => $role->context_id],
-                []
-            );
         }
     }
 
@@ -209,15 +192,7 @@ trait HasRolloRoles
             $roleIds = array_merge($roleIds, $otherContextRoleIds);
         }
 
-        // Get current role IDs for audit
-        $oldRoleIds = $this->roles()->pluck('rollo_roles.id')->toArray();
-        
         $this->roles()->sync($roleIds);
-        
-        // Log sync event if roles changed
-        if (array_diff($oldRoleIds, $roleIds) || array_diff($roleIds, $oldRoleIds)) {
-            $this->logRoleSync($oldRoleIds, $roleIds, $contextId);
-        }
     }
 
     /**
@@ -256,26 +231,4 @@ trait HasRolloRoles
         return true;
     }
 
-    /**
-     * Log role sync operation.
-     *
-     * @param array $oldRoleIds
-     * @param array $newRoleIds
-     * @param int|null $contextId
-     * @return void
-     */
-    protected function logRoleSync(array $oldRoleIds, array $newRoleIds, ?int $contextId = null): void
-    {
-        // Get role names
-        $oldRoleNames = RolloRole::whereIn('id', $oldRoleIds)->pluck('name')->toArray();
-        $newRoleNames = RolloRole::whereIn('id', $newRoleIds)->pluck('name')->toArray();
-        
-        RolloAudit::log(
-            'role.synced',
-            null,
-            $this,
-            ['roles' => $oldRoleNames, 'context_id' => $contextId],
-            ['roles' => $newRoleNames, 'context_id' => $contextId]
-        );
-    }
 }

@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloRole;
-use Noxomix\LaravelRollo\Models\RolloAudit;
 
 class Rollo
 {
@@ -269,36 +268,5 @@ class Rollo
         throw new \InvalidArgumentException('Invalid context provided.');
     }
 
-    /**
-     * Get audit logs query builder.
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function audit()
-    {
-        return RolloAudit::query();
-    }
-
-    /**
-     * Get audit logs for a specific model.
-     *
-     * @param Model $model
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function auditFor(Model $model)
-    {
-        return RolloAudit::forSubject($model);
-    }
-
-    /**
-     * Get audit logs by a specific user.
-     *
-     * @param Model|int $user
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function auditByUser($user)
-    {
-        return RolloAudit::forUser($user);
-    }
 
 }

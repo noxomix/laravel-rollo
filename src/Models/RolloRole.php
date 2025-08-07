@@ -7,11 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
 use Noxomix\LaravelRollo\Traits\HasRolloPermissions;
-use Noxomix\LaravelRollo\Traits\AuditsModelOperations;
 
 class RolloRole extends Model
 {
-    use HasRolloPermissions, AuditsModelOperations;
+    use HasRolloPermissions;
     /**
      * The table associated with the model.
      *
