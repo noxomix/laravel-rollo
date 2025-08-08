@@ -4,7 +4,7 @@ namespace Noxomix\LaravelRollo;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Noxomix\LaravelRollo\Models\RolloContext;
+use Noxomix\LaravelRollo\Support\ContextResolver;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloRole;
 
@@ -21,7 +21,7 @@ class Rollo
      */
     public function can(Model $model, string $permissionName, mixed $context = null): bool
     {
-        $contextId = $this->resolveContextId($context);
+        $contextId = ContextResolver::resolveContextId($context);
 
         // Check direct permissions
         if ($this->hasDirectPermission($model, $permissionName, $contextId)) {
@@ -55,7 +55,7 @@ class Rollo
      */
     public function permissionsFor(Model $model, mixed $context = null): Collection
     {
-        $contextId = $this->resolveContextId($context);
+        $contextId = ContextResolver::resolveContextId($context);
         
         // Get direct permissions
         $directPermissions = $this->getDirectPermissions($model, $contextId);
@@ -77,7 +77,7 @@ class Rollo
      */
     public function rolesFor(Model $model, $context = null): Collection
     {
-        $contextId = $this->resolveContextId($context);
+        $contextId = ContextResolver::resolveContextId($context);
         
         // Get directly assigned roles
         $directRoles = $this->getDirectRoles($model, $contextId);
@@ -108,7 +108,7 @@ class Rollo
             return false;
         }
 
-        $query = $model->permissions()->where('name', $permissionName);
+        $query = $model->permissions()->where('rollo_permissions.name', $permissionName);
         
         if ($contextId !== null) {
             $query->wherePivot('context_id', $contextId);
@@ -137,7 +137,7 @@ class Rollo
         // Check if any role has the permission
         foreach ($allRoles as $role) {
             if ($role->permissions()
-                ->where('name', $permissionName)
+                ->where('rollo_permissions.name', $permissionName)
                 ->when($contextId !== null, function ($query) use ($contextId) {
                     $query->wherePivot('context_id', $contextId);
                 })
