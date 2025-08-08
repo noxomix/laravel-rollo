@@ -69,7 +69,7 @@ class Tenant extends Model
 // Create permission
 $permission = RolloPermission::create(['name' => 'edit-posts']);
 
-// Assign to user (global)
+// Assign to user (kontextfrei)
 $user->assignPermission('edit-posts');
 
 // Assign multiple permissions
@@ -81,7 +81,7 @@ $context = $tenant->becomeRolloContext();
 $user->assignPermission('edit-posts', $context);
 
 // Check permission
-$user->hasPermission('edit-posts'); // global
+$user->hasPermission('edit-posts'); // kontextfrei (context_id = NULL)
 $user->hasPermission('edit-posts', $context); // in context
 
 // Remove
@@ -254,7 +254,7 @@ $users = $tenant->getModelsWithPermissionsInContext(User::class);
 
 - Allowed Models: The whitelist `config('rollo.allowed_models')` restricts which Eloquent models may be used in dynamic, string-based queries (e.g., context lookups). Package models may be listed when they use the traits (e.g., `Noxomix\\LaravelRollo\\Models\\RolloRole`).
 - Config Field Validation: The `config` attribute on roles/permissions is accepted as an array or null. Optional schema-based validation exists in code but is not active by default and carries no required schema; you can ignore it safely for core usage.
- - Context Semantics: When you pass a context to checks or queries, only assignments for that specific `context_id` are considered; global assignments (with `context_id = null`) are not included implicitly.
+ - Context Semantics: When you pass a context to checks or queries, only assignments for that specific `context_id` are considered; kontextfreie assignments (with `context_id = null`) are not included implicitly.
 
 ## Architecture
 

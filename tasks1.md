@@ -6,7 +6,7 @@ LaravelRollo ist ein Laravel-Package für kontextbasierte, polymorphe Rollen- un
 
 ### Kernfeatures:
 - **Polymorphe Unterstützung**: Beliebige Models (Users, Teams, Services, Bots etc.) können Berechtigungsträger sein
-- **Kontextbasiert**: Alle Berechtigungen sind an einen Kontext gebunden (z.B. Tenant, Team, Projekt)
+- **Kontextbasiert**: Berechtigungen können kontextgebunden (mit Kontext) oder kontextfrei (ohne Kontext/`NULL`) sein
 - **Rekursive Rollenvererbung**: Rollen können andere Rollen referenzieren
 - **Minimales Design**: Nur 2 Pivot-Tabellen (model_has_roles, model_has_permissions)
 - **Keine Spatie-Dependencies**: Eigenständige Implementierung
@@ -72,9 +72,9 @@ LaravelRollo ist ein Laravel-Package für kontextbasierte, polymorphe Rollen- un
 - Beispiel: Admin-Rolle bekommt Editor-Rolle zugewiesen → Admin erbt alle Berechtigungen von Editor
 - Die Vererbung ist transitiv: A → B → C bedeutet A hat alle Rechte von B und C
 
-### Kontextgebundene Berechtigungen
-- Jede Berechtigung wird immer in einem Kontext vergeben
-- Ein User kann "edit" Permission in Kontext "Team 1" haben, aber nicht in "Team 2"
+### Kontextgebundene und kontextfreie Berechtigungen
+- Berechtigungen können mit Kontext (kontextgebunden) oder ohne Kontext (kontextfrei = `context_id NULL`) vergeben werden
+- Beispiel: Ein User kann "edit" im Kontext "Team 1" haben, aber nicht in "Team 2"; zusätzlich kann er die Berechtigung kontextfrei haben
 - Contexts sind selbst polymorphe Beziehungen (z.B. zu Team, Tenant, Project Models)
 
 ## Implementierungsaufgaben
@@ -349,7 +349,7 @@ $context = $team->getRolloContext();
 1. **Keine Spatie-Permissions**: Komplett eigenständige Implementierung
 2. **Keine Guards**: Kein guard_name Feld oder Konzept
 3. **Polymorphie überall**: Alle Models können Rollen/Permissions haben
-4. **Context-First**: Jede Zuweisung ist kontextgebunden
+4. **Context-First**: Kontext-Checks berücksichtigen nur den angegebenen Kontext; Berechtigungen können zusätzlich kontextfrei (`context_id NULL`) vergeben werden
 5. **Performance**: Cache-Layer für häufige Abfragen vorsehen
 
 ## Abschluss

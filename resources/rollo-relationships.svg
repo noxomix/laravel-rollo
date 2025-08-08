@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" font-family="Inter, Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#334155" />
+    </marker>
+    <style><![CDATA[
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.2; rx: 8; }
+      .title { font-weight: 700; fill: #0f172a; font-size: 14px; }
+      .text { fill: #334155; font-size: 12px; }
+      .note { fill: #f8fafc; stroke: #e2e8f0; }
+      .pivot { fill: #f1f5f9; stroke: #cbd5e1; }
+      .trait { fill: #ecfeff; stroke: #22d3ee; }
+      .arrow { stroke: #334155; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 6 4; }
+      .legend { fill: #f8fafc; stroke: #e2e8f0; }
+    ]]></style>
+  </defs>
+
+  <!-- Legend -->
+  <g transform="translate(20,20)">
+    <rect class="legend box" width="320" height="110" />
+    <text class="title" x="12" y="22">Legende</text>
+    <g transform="translate(12,34)">
+      <rect class="box" width="16" height="12"/>
+      <text class="text" x="24" y="11">Entität / Tabelle</text>
+    </g>
+    <g transform="translate(12,56)">
+      <rect class="trait" width="16" height="12"/>
+      <text class="text" x="24" y="11">Trait (an Modell nutzbar)</text>
+    </g>
+    <g transform="translate(12,78)">
+      <rect class="pivot" width="16" height="12"/>
+      <text class="text" x="24" y="11">Pivot (morphToMany)</text>
+    </g>
+  </g>
+
+  <!-- Traits group -->
+  <g transform="translate(20,160)">
+    <rect class="trait box" width="320" height="150" />
+    <text class="title" x="12" y="22">Traits</text>
+    <text class="text" x="12" y="44">• HasRolloRoles</text>
+    <text class="text" x="12" y="64">• HasRolloPermissions</text>
+    <text class="text" x="12" y="84">• AsRolloContext</text>
+    <text class="text" x="12" y="114">Verwendung:</text>
+    <text class="text" x="24" y="134">User/Model ↔ Rollen &amp; Berechtigungen</text>
+  </g>
+
+  <!-- User/Model -->
+  <g id="model" transform="translate(420,140)">
+    <rect class="box" width="220" height="100" />
+    <text class="title" x="12" y="24">User (oder beliebiges Modell)</text>
+    <text class="text" x="12" y="48">nutzt: HasRolloRoles, HasRolloPermissions</text>
+    <text class="text" x="12" y="68">Methoden: roles(), permissions()</text>
+  </g>
+
+  <!-- RolloRole -->
+  <g id="role" transform="translate(760,120)">
+    <rect class="box" width="220" height="140" />
+    <text class="title" x="12" y="24">RolloRole</text>
+    <text class="text" x="12" y="48">Spalten: id, name, context_id, …</text>
+    <text class="text" x="12" y="68">belongsTo: RolloContext</text>
+    <text class="text" x="12" y="88">morphToMany: models()</text>
+    <text class="text" x="12" y="108">nutzt: HasRolloPermissions</text>
+  </g>
+
+  <!-- RolloPermission -->
+  <g id="perm" transform="translate(760,340)">
+    <rect class="box" width="220" height="120" />
+    <text class="title" x="12" y="24">RolloPermission</text>
+    <text class="text" x="12" y="48">Spalten: id, name, …</text>
+    <text class="text" x="12" y="68">morphToMany: models()</text>
+    <text class="text" x="12" y="88">findByName(), findOrCreate()</text>
+  </g>
+
+  <!-- RolloContext -->
+  <g id="context" transform="translate(1040,120)">
+    <rect class="box" width="220" height="160" />
+    <text class="title" x="12" y="24">RolloContext</text>
+    <text class="text" x="12" y="48">Spalten: id, name</text>
+    <text class="text" x="12" y="68">contextable_type, contextable_id</text>
+    <text class="text" x="12" y="88">morphTo: contextable()</text>
+    <text class="text" x="12" y="108">hasMany: roles()</text>
+  </g>
+
+  <!-- Contextable model example -->
+  <g id="project" transform="translate(1040,340)">
+    <rect class="box" width="220" height="100" />
+    <text class="title" x="12" y="24">Projekt/Team (Kontext-Träger)</text>
+    <text class="text" x="12" y="48">nutzt: AsRolloContext</text>
+    <text class="text" x="12" y="68">morphOne: rolloContext()</text>
+  </g>
+
+  <!-- Pivots -->
+  <g transform="translate(420,300)">
+    <rect class="pivot box" width="300" height="80" />
+    <text class="title" x="12" y="22">rollo_model_has_roles</text>
+    <text class="text" x="12" y="44">model_type, model_id, role_id</text>
+  </g>
+
+  <g transform="translate(420,420)">
+    <rect class="pivot box" width="300" height="100" />
+    <text class="title" x="12" y="22">rollo_model_has_permissions</text>
+    <text class="text" x="12" y="44">model_type, model_id, permission_id</text>
+    <text class="text" x="12" y="64">context_id (kontextfrei = NULL)</text>
+  </g>
+
+  <!-- Service -->
+  <g transform="translate(20,340)">
+    <rect class="note box" width="360" height="120" />
+    <text class="title" x="12" y="24">Rollo::can($model, $permission, $context)</text>
+    <text class="text" x="12" y="48">Prüft direkte Permissions und via Rollen</text>
+    <text class="text" x="12" y="68">inkl. Rollenvererbung (childRoles)</text>
+    <text class="text" x="12" y="88">ContextResolver löst Kontext-ID</text>
+  </g>
+
+  <!-- Arrows from Traits to Model and Project -->
+  <path class="arrow dashed" d="M340,235 H420" />
+  <path class="arrow dashed" d="M250,260 C250,260 300,300 420,320" />
+  <path class="arrow dashed" d="M250,210 C300,200 1000,370 1040,380" />
+
+  <!-- Model ↔ Roles via pivot -->
+  <path class="arrow" d="M640,190 H760" />
+  <text class="text" x="660" y="180">morphToMany</text>
+  <path class="arrow" d="M570,300 C720,300 760,260 860,260" />
+
+  <!-- Model ↔ Permissions via pivot -->
+  <path class="arrow" d="M530,420 C700,420 760,400 760,400" />
+  <text class="text" x="560" y="410">morphToMany (context_id)</text>
+
+  <!-- Roles ↔ Permissions (Role nutzt HasRolloPermissions) -->
+  <path class="arrow" d="M870,260 V340" />
+  <text class="text" x="880" y="300">morphToMany</text>
+
+  <!-- Role belongsTo Context -->
+  <path class="arrow" d="M980,170 H1040" />
+  <text class="text" x="990" y="160">belongsTo</text>
+
+  <!-- Contextable model ↔ Context -->
+  <path class="arrow" d="M1150,340 V280" />
+  <text class="text" x="1160" y="320">morphOne / morphTo</text>
+
+  <!-- Role inheritance (childRoles) -->
+  <path class="arrow dashed" d="M870,120 C950,90 950,90 870,120" />
+  <text class="text" x="900" y="98">childRoles (Vererbung)</text>
+
+  <!-- Notes -->
+  <g transform="translate(20,500)">
+    <rect class="note box" width="1240" height="140" />
+    <text class="title" x="12" y="24">Kernaussagen</text>
+    <text class="text" x="12" y="48">1) Modelle (z. B. User) erhalten Rollen und direkte Berechtigungen über polymorphe Pivot-Tabellen.</text>
+    <text class="text" x="12" y="68">2) Rollen gehören zu einem RolloContext (z. B. Projekt/Team). Berechtigungen können kontextgebunden (context_id) oder kontextfrei (NULL) sein.</text>
+    <text class="text" x="12" y="88">3) Rollen können andere Rollen erben (childRoles) – Berechtigungen vererben sich transitiv.</text>
+    <text class="text" x="12" y="108">4) Rollo::can() vereint direkte und vererbte Berechtigungen; ContextResolver löst numerische IDs, RolloContext-Instanzen oder contextable Modelle.</text>
+  </g>
+
+  <!-- Footer -->
+  <text class="text" x="20" y="820">Datei: resources/rollo-relationships.svg · Generiert automatisch</text>
+</svg>
