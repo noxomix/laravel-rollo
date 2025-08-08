@@ -235,6 +235,15 @@ $users = $tenant->getModelsWithPermissionsInContext(User::class);
 - Allowed Models: The whitelist `config('rollo.allowed_models')` restricts which Eloquent models may be used in dynamic, string-based queries (e.g., context lookups). Package models may be listed when they use the traits (e.g., `Noxomix\\LaravelRollo\\Models\\RolloRole`).
 - Config Field Validation: The `config` attribute on roles/permissions is accepted as an array or null. Optional schema-based validation exists in code but is not active by default and carries no required schema; you can ignore it safely for core usage.
 
+## Architecture
+
+- Context Resolution: Internally, a central resolver (`Noxomix\\LaravelRollo\\Support\\ContextResolver`) resolves a context ID from IDs, `RolloContext`, or arbitrary Eloquent models. Traits and the service class use this resolver to keep behavior consistent and simple.
+- Facade Binding: The `Rollo` facade resolves the container singleton bound under the key `rollo`.
+
+## Compatibility
+
+- MySQL-Friendly Pivot: The `rollo_model_has_permissions` table uses a surrogate primary key (`id`) with a unique index over (`permission_id`, `model_type`, `model_id`, `context_id`). This allows `context_id` to remain nullable while staying compatible with databases that do not allow NULL columns in primary keys.
+
  
 
 ## Testing
