@@ -176,6 +176,30 @@ $roles = Rollo::rolesFor($user, $context);
 - `Rollo::permissionsFor(Model $model, mixed $context = null): Illuminate\Support\Collection` — returns all effective permissions (direct + via roles), optionally scoped to a context.
 - `Rollo::rolesFor(Model $model, mixed $context = null): Illuminate\Support\Collection` — returns all effective roles (direct + inherited), optionally scoped to a context.
 
+## Events
+
+This package dispatches Laravel events for key operations so you can build auditing, logs, or side-effects in your app without coupling it to the package:
+
+- `Noxomix\\LaravelRollo\\Events\\RoleCreated` — payload: `RolloRole $role`
+- `Noxomix\\LaravelRollo\\Events\\RoleAssigned` — payload: `Model $model, RolloRole $role`
+- `Noxomix\\LaravelRollo\\Events\\RoleRemoved` — payload: `Model $model, RolloRole $role`
+- `Noxomix\\LaravelRollo\\Events\\PermissionAssigned` — payload: `Model $model, RolloPermission $permission, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\PermissionRemoved` — payload: `Model $model, RolloPermission $permission, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\ContextCreated` — payload: `RolloContext $context`
+- `Noxomix\\LaravelRollo\\Events\\ContextUpdated` — payload: `RolloContext $context`
+- `Noxomix\\LaravelRollo\\Events\\ContextDeleted` — payload: `RolloContext $context`
+
+Example listener registration:
+
+```php
+Event::listen(\Noxomix\LaravelRollo\Events\PermissionAssigned::class, function ($event) {
+    // audit($event->model, 'permission_assigned', [
+    //     'permission' => $event->permission->name,
+    //     'context_id' => $event->contextId,
+    // ]);
+});
+```
+
 ## Advanced Usage
 
 ### JSON Configuration

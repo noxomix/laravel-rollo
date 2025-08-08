@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloRole;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
+use Noxomix\LaravelRollo\Events\RoleAssigned;
+use Noxomix\LaravelRollo\Events\RoleRemoved;
 
 trait HasRolloRoles
 {
@@ -56,7 +58,7 @@ trait HasRolloRoles
         // Check if role is already assigned
         if (!$this->roles()->where('role_id', $role->id)->exists()) {
             $this->roles()->attach($role->id);
-            
+            event(new RoleAssigned($this, $role));
         }
     }
 
@@ -96,7 +98,7 @@ trait HasRolloRoles
         // Check if role is assigned before detaching
         if ($this->roles()->where('role_id', $role->id)->exists()) {
             $this->roles()->detach($role->id);
-            
+            event(new RoleRemoved($this, $role));
         }
     }
 

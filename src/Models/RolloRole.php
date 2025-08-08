@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
 use Noxomix\LaravelRollo\Traits\HasRolloPermissions;
+use Noxomix\LaravelRollo\Events\RoleCreated;
 
 class RolloRole extends Model
 {
@@ -65,6 +66,11 @@ class RolloRole extends Model
             if ($role->isDirty('config')) {
                 RolloValidator::validateConfig($role->config);
             }
+        });
+
+        // Dispatch created event
+        static::created(function ($role) {
+            event(new RoleCreated($role));
         });
     }
 

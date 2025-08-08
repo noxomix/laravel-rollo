@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use Noxomix\LaravelRollo\Models\RolloPermission;
 use Noxomix\LaravelRollo\Models\RolloContext;
 use Noxomix\LaravelRollo\Validators\RolloValidator;
+use Noxomix\LaravelRollo\Events\PermissionAssigned;
+use Noxomix\LaravelRollo\Events\PermissionRemoved;
 
 trait HasRolloPermissions
 {
@@ -60,7 +62,7 @@ trait HasRolloPermissions
         // Only attach if it doesn't already exist
         if (!$existingQuery->exists()) {
             $this->permissions()->attach($permission->id, ['context_id' => $contextId]);
-            
+            event(new PermissionAssigned($this, $permission, $contextId));
         }
     }
 
@@ -116,6 +118,7 @@ trait HasRolloPermissions
         }
 
         $query->detach();
+        event(new PermissionRemoved($this, $permission, $contextId));
     }
 
     /**

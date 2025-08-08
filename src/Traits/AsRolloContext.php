@@ -4,6 +4,9 @@ namespace Noxomix\LaravelRollo\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Noxomix\LaravelRollo\Models\RolloContext;
+use Noxomix\LaravelRollo\Events\ContextCreated;
+use Noxomix\LaravelRollo\Events\ContextUpdated;
+use Noxomix\LaravelRollo\Events\ContextDeleted;
 
 trait AsRolloContext
 {
@@ -38,9 +41,13 @@ trait AsRolloContext
         }
 
         // Create new context
-        return $this->rolloContext()->create([
+        $context = $this->rolloContext()->create([
             'name' => $name,
         ]);
+
+        event(new ContextCreated($context));
+
+        return $context;
     }
 
     /**
@@ -104,6 +111,8 @@ trait AsRolloContext
             'name' => $name,
         ]);
 
+        event(new ContextUpdated($context));
+
         return $context;
     }
 
@@ -114,7 +123,11 @@ trait AsRolloContext
      */
     public function deleteRolloContext(): void
     {
+        $context = $this->rolloContext;
         $this->rolloContext()->delete();
+        if ($context) {
+            event(new ContextDeleted($context));
+        }
     }
 
     /**
