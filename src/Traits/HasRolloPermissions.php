@@ -345,10 +345,27 @@ trait HasRolloPermissions
     {
         $contextId = $this->resolveContextId($context);
 
+        // Snapshot before (IDs within scope)
+        $before = $this->permissions()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->wherePivot('context_id', $contextId);
+            }, function ($q) {
+                $q->wherePivotNull('context_id');
+            })
+            ->pluck('rollo_permissions.id')
+            ->toArray();
+
         if ($contextId !== null) {
             $this->permissions()->wherePivot('context_id', $contextId)->detach();
         } else {
-            $this->permissions()->detach();
+            // Only detach kontextfrei entries
+            if (!empty($before)) {
+                $this->permissions()->wherePivotNull('context_id')->detach($before);
+            }
+        }
+
+        if (!empty($before)) {
+            event(new \Noxomix\LaravelRollo\Events\PermissionsRemovedBatch($this, array_values($before), $contextId));
         }
     }
 
