@@ -9,49 +9,45 @@ COMMAND=${1:-help}
 
 case $COMMAND in
     "init")
-        echo "🚀 Initializing package development..."
+        echo "Initializing package development..."
         composer install
-        echo "✅ Package initialized!"
+        echo "Package initialized!"
         ;;
         
     "test")
-        echo "🧪 Running package tests..."
+        echo "Running package tests..."
         composer test
         ;;
         
     "test:fresh")
-        echo "🧪 Testing in fresh Laravel installation..."
+        echo "Testing in fresh Laravel installation..."
         ./scripts/test-in-laravel.sh
         ;;
         
     "workbench")
-        echo "🛠️  Starting Testbench workbench..."
+        echo "Starting Testbench workbench..."
         composer install
         composer run build
         composer run serve
         ;;
         
     "workbench:test")
-        echo "🧪 Testing in workbench..."
+        echo "Testing in workbench..."
         composer install
         composer run build
-        php vendor/bin/testbench artisan rollo:install --with-migrations
+        php vendor/bin/testbench artisan rollo:setup
         php vendor/bin/testbench artisan migrate
-        php vendor/bin/testbench tinker --execute="
-use Noxomix\LaravelRollo\Facades\Rollo;
-echo Rollo::greet('Workbench Test') . PHP_EOL;
-"
         ;;
         
     "publish:test")
-        echo "📦 Testing publish commands..."
+        echo "Testing publish commands..."
         php vendor/bin/testbench artisan vendor:publish --tag=rollo-config
         php vendor/bin/testbench artisan vendor:publish --tag=rollo-migrations
-        echo "✅ Publishing tested!"
+        echo "Publishing tested!"
         ;;
         
     "clean")
-        echo "🧹 Cleaning up..."
+        echo "Cleaning up..."
         ./scripts/clean-test.sh
         ;;
         
@@ -74,3 +70,4 @@ echo Rollo::greet('Workbench Test') . PHP_EOL;
         echo "  ./scripts/dev-workflow.sh test:fresh"
         ;;
 esac
+

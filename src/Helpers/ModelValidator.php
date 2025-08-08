@@ -20,16 +20,15 @@ class ModelValidator
             throw new \InvalidArgumentException("Model class '{$modelClass}' does not exist.");
         }
         
-        // Check if it's an Eloquent model
-        $model = new $modelClass;
-        if (!$model instanceof Model) {
-            throw new \InvalidArgumentException("Class '{$modelClass}' is not an Eloquent model.");
-        }
-        
-        // Check against allowed models whitelist
+        // Check against allowed models whitelist BEFORE any instantiation
         $allowedModels = config('rollo.allowed_models');
         if ($allowedModels !== null && !in_array($modelClass, $allowedModels)) {
             throw new \InvalidArgumentException("Model class '{$modelClass}' is not allowed to use Rollo.");
+        }
+
+        // Check if it's an Eloquent model (without instantiation)
+        if (!is_subclass_of($modelClass, Model::class)) {
+            throw new \InvalidArgumentException("Class '{$modelClass}' is not an Eloquent model.");
         }
     }
 

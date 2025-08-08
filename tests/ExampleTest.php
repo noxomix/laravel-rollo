@@ -2,22 +2,19 @@
 
 namespace Noxomix\LaravelRollo\Tests;
 
-use Noxomix\LaravelRollo\Rollo;
+use Noxomix\LaravelRollo\Rollo as RolloService;
+use Noxomix\LaravelRollo\Facades\Rollo as RolloFacade;
 
 class ExampleTest extends TestCase
 {
-    public function test_it_can_greet()
+    public function test_service_is_bound_in_container(): void
     {
-        $rollo = new Rollo();
-        
-        $this->assertEquals('Hello, World! This is Rollo.', $rollo->greet());
-        $this->assertEquals('Hello, John! This is Rollo.', $rollo->greet('John'));
+        $service = app('rollo');
+        $this->assertInstanceOf(RolloService::class, $service);
     }
-    
-    public function test_it_can_check_if_enabled()
+
+    public function test_facade_resolves_service(): void
     {
-        $rollo = new Rollo();
-        
-        $this->assertTrue($rollo->isEnabled());
+        $this->assertInstanceOf(RolloService::class, RolloFacade::getFacadeRoot());
     }
 }

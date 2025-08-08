@@ -17,7 +17,7 @@ return [
     |
     | Define which models in your application can have roles and permissions.
     | These are the models that can use the HasRolloRoles and HasRolloPermissions traits.
-    | This does NOT include Rollo's own models (RolloRole, RolloPermission, etc.).
+    | Package models MAY be included when they use these traits (e.g. RolloRole).
     | 
     | This provides an additional security layer against unauthorized model usage.
     | Set to null to allow any Eloquent model to have roles/permissions (less secure).

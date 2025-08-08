@@ -14,7 +14,7 @@ composer require noxomix/laravel-rollo
 - **Context-based** - All permissions are scoped to contexts (tenants, teams, projects)
 - **Recursive role inheritance** - Roles can inherit from other roles
 - **No guard_names** - Works without Laravel's guard system
-- **Cache optimized** - Built-in caching for permission checks
+- **No auto-enforcement** - Provides helpers to build your own RBAC checks
 
 ## Quick Start
 
@@ -135,7 +135,7 @@ $tenant->deleteRolloContext();
 ```php
 use Noxomix\LaravelRollo\Facades\Rollo;
 
-// Check permission (with caching)
+// Check permission
 if (Rollo::has($user, 'edit-posts')) {
     // ...
 }
@@ -153,9 +153,7 @@ $permissions = Rollo::permissionsFor($user, $context);
 $roles = Rollo::rolesFor($user);
 $roles = Rollo::rolesFor($user, $context);
 
-// Clear cache
-Rollo::clearCache();
-Rollo::clearCacheFor($user);
+// Note: This package does not auto-enforce permissions; use these helpers in your app logic.
 ```
 
 ## Advanced Usage
@@ -197,7 +195,7 @@ if ($user->hasPermission('edit-posts')) {
     // User has direct permission
 }
 
-// Check via roles and permissions (uses caching)
+// Check via roles and permissions
 if ($user->canPerform('edit-posts')) {
     // User can perform action (direct or via roles)
 }
@@ -232,19 +230,12 @@ $users = $tenant->getModelsWithPermissionsInContext(User::class);
 - `rollo_model_has_roles` - Polymorphic role assignments
 - `rollo_model_has_permissions` - Polymorphic permission assignments
 
-## Cache
+## Configuration
 
-Permission checks are cached for performance. Clear cache when needed:
+- Allowed Models: The whitelist `config('rollo.allowed_models')` restricts which Eloquent models may be used in dynamic, string-based queries (e.g., context lookups). Package models may be listed when they use the traits (e.g., `Noxomix\\LaravelRollo\\Models\\RolloRole`).
+- Config Field Validation: The `config` attribute on roles/permissions is accepted as an array or null. Optional schema-based validation exists in code but is not active by default and carries no required schema; you can ignore it safely for core usage.
 
-```bash
-php artisan rollo:clear-cache
-```
-
-Or programmatically:
-
-```php
-Rollo::clearCache();
-```
+ 
 
 ## Testing
 
