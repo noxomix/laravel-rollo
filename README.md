@@ -188,6 +188,10 @@ This package dispatches Laravel events for key operations so you can build audit
 - `Noxomix\\LaravelRollo\\Events\\ContextCreated` — payload: `RolloContext $context`
 - `Noxomix\\LaravelRollo\\Events\\ContextUpdated` — payload: `RolloContext $context`
 - `Noxomix\\LaravelRollo\\Events\\ContextDeleted` — payload: `RolloContext $context`
+ - `Noxomix\\LaravelRollo\\Events\\RolesSynced` — payload: `Model $model, array $attached, array $detached, ?int $contextId`
+ - `Noxomix\\LaravelRollo\\Events\\PermissionsSynced` — payload: `Model $model, array $attached, array $detached, ?int $contextId`
+ - `Noxomix\\LaravelRollo\\Events\\RoleChildAssigned` — payload: `RolloRole $parent, RolloRole $child`
+ - `Noxomix\\LaravelRollo\\Events\\RoleChildRemoved` — payload: `RolloRole $parent, RolloRole $child`
 
 Example listener registration:
 

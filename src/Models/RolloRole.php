@@ -198,6 +198,7 @@ class RolloRole extends Model
         }
 
         $this->childRoles()->attach($role->id);
+        event(new \Noxomix\LaravelRollo\Events\RoleChildAssigned($this, $role));
     }
 
     /**
@@ -263,6 +264,7 @@ class RolloRole extends Model
         }
 
         $this->childRoles()->detach($role->id);
+        event(new \Noxomix\LaravelRollo\Events\RoleChildRemoved($this, $role));
     }
 
 

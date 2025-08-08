@@ -217,19 +217,32 @@ trait HasRolloPermissions
                 ->pluck('rollo_permissions.id')
                 ->toArray();
 
+            $newForContext = array_keys($sync);
+            $attached = array_values(array_diff($newForContext, $currentForContext));
+            $detached = array_values(array_diff($currentForContext, $newForContext));
+
             // Detach current permissions for this context
-            foreach ($currentForContext as $permId) {
-                $this->permissions()->wherePivot('context_id', $contextId)->detach($permId);
+            if (!empty($currentForContext)) {
+                $this->permissions()->wherePivot('context_id', $contextId)->detach($currentForContext);
             }
 
-            // Attach new permissions
+            // Attach new permissions for this context
             foreach ($sync as $permId => $pivotData) {
                 $this->permissions()->attach($permId, $pivotData);
             }
-            
-        } else {
-            $this->permissions()->sync($sync);
+
+            event(new \Noxomix\LaravelRollo\Events\PermissionsSynced($this, $attached, $detached, $contextId));
+            return;
         }
+
+        // No context: full sync and compute global delta
+        $currentAll = $this->permissions()->pluck('rollo_permissions.id')->toArray();
+        $newAll = array_keys($sync);
+        $attached = array_values(array_diff($newAll, $currentAll));
+        $detached = array_values(array_diff($currentAll, $newAll));
+
+        $this->permissions()->sync($sync);
+        event(new \Noxomix\LaravelRollo\Events\PermissionsSynced($this, $attached, $detached, null));
     }
 
     /**

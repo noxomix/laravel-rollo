@@ -183,18 +183,38 @@ trait HasRolloRoles
             }
         }
 
-        // If context is specified, only sync roles from that context
         if ($contextId !== null) {
+            // Current roles within this context
+            $currentForContext = $this->roles()
+                ->where('context_id', $contextId)
+                ->pluck('rollo_roles.id')
+                ->toArray();
+
             // Keep roles from other contexts
             $otherContextRoleIds = $this->roles()
                 ->where('context_id', '!=', $contextId)
                 ->pluck('rollo_roles.id')
                 ->toArray();
-            
-            $roleIds = array_merge($roleIds, $otherContextRoleIds);
+
+            $newForContext = array_values(array_unique($roleIds));
+            $attached = array_values(array_diff($newForContext, $currentForContext));
+            $detached = array_values(array_diff($currentForContext, $newForContext));
+
+            // Merge for actual sync
+            $finalIds = array_merge($newForContext, $otherContextRoleIds);
+            $this->roles()->sync($finalIds);
+            event(new \Noxomix\LaravelRollo\Events\RolesSynced($this, $attached, $detached, $contextId));
+            return;
         }
 
-        $this->roles()->sync($roleIds);
+        // No context filter: compute overall delta
+        $currentAll = $this->roles()->pluck('rollo_roles.id')->toArray();
+        $newAll = array_values(array_unique($roleIds));
+        $attached = array_values(array_diff($newAll, $currentAll));
+        $detached = array_values(array_diff($currentAll, $newAll));
+
+        $this->roles()->sync($newAll);
+        event(new \Noxomix\LaravelRollo\Events\RolesSynced($this, $attached, $detached, null));
     }
 
     /**
