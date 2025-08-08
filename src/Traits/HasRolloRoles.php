@@ -71,8 +71,30 @@ trait HasRolloRoles
      */
     public function assignRoles(array $roles, $context = null): void
     {
+        $contextId = $this->resolveContextId($context);
+        // Snapshot before
+        $before = $this->roles()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->where('context_id', $contextId);
+            })
+            ->pluck('rollo_roles.id')
+            ->toArray();
+
         foreach ($roles as $role) {
             $this->assignRole($role, $context);
+        }
+
+        // Snapshot after
+        $after = $this->roles()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->where('context_id', $contextId);
+            })
+            ->pluck('rollo_roles.id')
+            ->toArray();
+
+        $attached = array_values(array_diff($after, $before));
+        if (!empty($attached)) {
+            event(new \Noxomix\LaravelRollo\Events\RolesAssignedBatch($this, $attached, $contextId));
         }
     }
 
@@ -111,8 +133,30 @@ trait HasRolloRoles
      */
     public function removeRoles(array $roles, $context = null): void
     {
+        $contextId = $this->resolveContextId($context);
+        // Snapshot before
+        $before = $this->roles()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->where('context_id', $contextId);
+            })
+            ->pluck('rollo_roles.id')
+            ->toArray();
+
         foreach ($roles as $role) {
             $this->removeRole($role, $context);
+        }
+
+        // Snapshot after
+        $after = $this->roles()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->where('context_id', $contextId);
+            })
+            ->pluck('rollo_roles.id')
+            ->toArray();
+
+        $detached = array_values(array_diff($before, $after));
+        if (!empty($detached)) {
+            event(new \Noxomix\LaravelRollo\Events\RolesRemovedBatch($this, $detached, $contextId));
         }
     }
 

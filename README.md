@@ -189,9 +189,13 @@ This package dispatches Laravel events for key operations so you can build audit
 - `Noxomix\\LaravelRollo\\Events\\ContextUpdated` — payload: `RolloContext $context`
 - `Noxomix\\LaravelRollo\\Events\\ContextDeleted` — payload: `RolloContext $context`
  - `Noxomix\\LaravelRollo\\Events\\RolesSynced` — payload: `Model $model, array $attached, array $detached, ?int $contextId`
- - `Noxomix\\LaravelRollo\\Events\\PermissionsSynced` — payload: `Model $model, array $attached, array $detached, ?int $contextId`
- - `Noxomix\\LaravelRollo\\Events\\RoleChildAssigned` — payload: `RolloRole $parent, RolloRole $child`
- - `Noxomix\\LaravelRollo\\Events\\RoleChildRemoved` — payload: `RolloRole $parent, RolloRole $child`
+- `Noxomix\\LaravelRollo\\Events\\PermissionsSynced` — payload: `Model $model, array $attached, array $detached, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\RoleChildAssigned` — payload: `RolloRole $parent, RolloRole $child`
+- `Noxomix\\LaravelRollo\\Events\\RoleChildRemoved` — payload: `RolloRole $parent, RolloRole $child`
+- `Noxomix\\LaravelRollo\\Events\\RolesAssignedBatch` — payload: `Model $model, array $attachedIds, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\RolesRemovedBatch` — payload: `Model $model, array $detachedIds, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\PermissionsAssignedBatch` — payload: `Model $model, array $attachedIds, ?int $contextId`
+- `Noxomix\\LaravelRollo\\Events\\PermissionsRemovedBatch` — payload: `Model $model, array $detachedIds, ?int $contextId`
 
 Example listener registration:
 

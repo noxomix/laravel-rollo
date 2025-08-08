@@ -75,6 +75,18 @@ trait HasRolloPermissions
      */
     public function assignPermissions(array $permissions, $context = null): void
     {
+        $contextId = $this->resolveContextId($context);
+
+        // Snapshot before for this context scope
+        $before = $this->permissions()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->wherePivot('context_id', $contextId);
+            }, function ($q) {
+                $q->wherePivotNull('context_id');
+            })
+            ->pluck('rollo_permissions.id')
+            ->toArray();
+
         foreach ($permissions as $permission) {
             // Skip null or empty values
             if (empty($permission)) {
@@ -87,6 +99,21 @@ trait HasRolloPermissions
                 // Skip invalid permissions in batch operations
                 continue;
             }
+        }
+
+        // Snapshot after
+        $after = $this->permissions()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->wherePivot('context_id', $contextId);
+            }, function ($q) {
+                $q->wherePivotNull('context_id');
+            })
+            ->pluck('rollo_permissions.id')
+            ->toArray();
+
+        $attached = array_values(array_diff($after, $before));
+        if (!empty($attached)) {
+            event(new \Noxomix\LaravelRollo\Events\PermissionsAssignedBatch($this, $attached, $contextId));
         }
     }
 
@@ -130,8 +157,35 @@ trait HasRolloPermissions
      */
     public function removePermissions(array $permissions, $context = null): void
     {
+        $contextId = $this->resolveContextId($context);
+
+        // Snapshot before for this context scope
+        $before = $this->permissions()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->wherePivot('context_id', $contextId);
+            }, function ($q) {
+                $q->wherePivotNull('context_id');
+            })
+            ->pluck('rollo_permissions.id')
+            ->toArray();
+
         foreach ($permissions as $permission) {
             $this->removePermission($permission, $context);
+        }
+
+        // Snapshot after
+        $after = $this->permissions()
+            ->when($contextId !== null, function ($q) use ($contextId) {
+                $q->wherePivot('context_id', $contextId);
+            }, function ($q) {
+                $q->wherePivotNull('context_id');
+            })
+            ->pluck('rollo_permissions.id')
+            ->toArray();
+
+        $detached = array_values(array_diff($before, $after));
+        if (!empty($detached)) {
+            event(new \Noxomix\LaravelRollo\Events\PermissionsRemovedBatch($this, $detached, $contextId));
         }
     }
 
