@@ -2,29 +2,43 @@
 
 Context-based, polymorphic role and permission management for Laravel.
 
+## Requirements
+
+- PHP: ^8.2
+- Laravel (Illuminate components): ^11.0 | ^12.0
+
 ## Installation
 
 ```bash
 composer require noxomix/laravel-rollo
 ```
 
-## Features
+## What It Does
 
-- **Polymorphic** - Any model can have roles and permissions
-- **Context-based** - All permissions are scoped to contexts (tenants, teams, projects)
-- **Recursive role inheritance** - Roles can inherit from other roles
-- **No guard_names** - Works without Laravel's guard system
-- **No auto-enforcement** - Provides helpers to build your own RBAC checks
+- **Polymorphic**: Any model can have roles and permissions
+- **Context-based**: Assignments can be scoped to contexts (tenants, teams, projects)
+- **Recursive role inheritance**: Roles can inherit from other roles
+- **No auto-enforcement**: You call helpers to build your own RBAC checks
 
-## Quick Start
+## Getting Started
 
-### 1. Run Migrations
+### 1) Setup (recommended)
 
 ```bash
+php artisan rollo:setup
+```
+
+This publishes `config/rollo.php`, migrations, and can optionally run them.
+
+Alternatively (manual):
+
+```bash
+php artisan vendor:publish --tag=rollo-config
+php artisan vendor:publish --tag=rollo-migrations
 php artisan migrate
 ```
 
-### 2. Add Traits to Models
+### 2) Add Traits to Models
 
 ```php
 use Noxomix\LaravelRollo\Traits\HasRolloRoles;
@@ -36,7 +50,7 @@ class User extends Model
 }
 ```
 
-### 3. Add Context Trait
+### 3) Add Context Trait (optional)
 
 ```php
 use Noxomix\LaravelRollo\Traits\AsRolloContext;
@@ -156,6 +170,12 @@ $roles = Rollo::rolesFor($user, $context);
 // Note: This package does not auto-enforce permissions; use these helpers in your app logic.
 ```
 
+## Service API
+
+- `Rollo::has(Model $model, string $permission, mixed $context = null): bool` — checks direct permission and via roles (including inherited roles). If `$context` is provided, only assignments for that `context_id` are considered.
+- `Rollo::permissionsFor(Model $model, mixed $context = null): Illuminate\Support\Collection` — returns all effective permissions (direct + via roles), optionally scoped to a context.
+- `Rollo::rolesFor(Model $model, mixed $context = null): Illuminate\Support\Collection` — returns all effective roles (direct + inherited), optionally scoped to a context.
+
 ## Advanced Usage
 
 ### JSON Configuration
@@ -234,6 +254,7 @@ $users = $tenant->getModelsWithPermissionsInContext(User::class);
 
 - Allowed Models: The whitelist `config('rollo.allowed_models')` restricts which Eloquent models may be used in dynamic, string-based queries (e.g., context lookups). Package models may be listed when they use the traits (e.g., `Noxomix\\LaravelRollo\\Models\\RolloRole`).
 - Config Field Validation: The `config` attribute on roles/permissions is accepted as an array or null. Optional schema-based validation exists in code but is not active by default and carries no required schema; you can ignore it safely for core usage.
+ - Context Semantics: When you pass a context to checks or queries, only assignments for that specific `context_id` are considered; global assignments (with `context_id = null`) are not included implicitly.
 
 ## Architecture
 
